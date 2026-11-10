@@ -1,0 +1,2257 @@
+<!doctype html>
+<!--
+  Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS), with MeshCore community guidance and assistance.
+  Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LODESTAR CAIRN station</title>
+<meta name="theme-color" content="#0d1620">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b131b; --panel: #121e29; --panel2: #182736; --line: #27394a; --ink: #eef3f7; --ink2: #b7c5d1; --muted: #8a9db0;
+  --accent: #5aa9ff; --good: #35c98a; --warn: #f2b134; --bad: #ff5d5d; --info: #b08cff; --rep: #35c98a; --comp: #5aa9ff; --room: #f2b134;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --mono: ui-monospace, "SF Mono", Consolas, Menlo, monospace;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef2f6; --panel: #ffffff; --panel2: #f3f6f9; --line: #cdd7e0; --ink: #0d1822; --ink2: #36485a; --muted: #5d7183;
+  --accent: #1b60b8; --good: #11875a; --warn: #a96b00; --bad: #c4302b; --info: #6a46c8; --rep: #11875a; --comp: #1b60b8; --room: #a96b00;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.35; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { min-height: 48px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); cursor: pointer; touch-action: manipulation; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.pri { background: var(--accent); color: #04121f; border-color: var(--accent); font-weight: 700; }
+button.danger { border-color: var(--bad); color: var(--bad); }
+button[aria-pressed="true"] { background: var(--accent); color: #04121f; border-color: var(--accent); font-weight: 700; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+input[type=text], input[type=search], input[type=number], select { min-height: 48px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); width: 100%; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+header.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 12px 0; }
+.brand { margin: 0; font-size: 22px; letter-spacing: .06em; font-weight: 800; }
+.brand small { display: block; font-size: 12px; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+.sid { font-family: var(--mono); font-size: 26px; font-weight: 800; padding: 2px 12px; border: 2px solid var(--accent); border-radius: 10px; letter-spacing: .08em; }
+.sid.none { border-color: var(--line); color: var(--muted); }
+.grow { flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 15px; }
+.chip i { width: 12px; height: 12px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.chip[data-s="live"] i { background: var(--good); } .chip[data-s="wait"] i { background: var(--warn); } .chip[data-s="demo"] i { background: var(--info); }
+
+nav.tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; position: sticky; top: 0; background: var(--bg); z-index: 500; }
+nav.tabs button { min-height: 56px; padding: 8px 18px; font-weight: 700; white-space: nowrap; }
+nav.tabs .badge { display: inline-block; min-width: 22px; margin-left: 8px; padding: 0 7px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 13px; }
+
+section.tab { display: none; }
+section.tab.on { display: block; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.card h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.span2 { grid-column: 1 / -1; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row > .grow { min-width: 160px; }
+.muted { color: var(--muted); } .small { font-size: 14px; }
+.mono { font-family: var(--mono); }
+.big { font-size: 40px; font-weight: 800; line-height: 1.1; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; }
+
+.banner { border-radius: 14px; padding: 16px 20px; border: 2px solid var(--line); background: var(--panel); }
+.banner .t { font-size: 34px; font-weight: 800; line-height: 1.1; }
+.banner .s { font-size: 18px; margin-top: 6px; color: var(--ink2); }
+.banner.good { border-color: var(--good); } .banner.good .t { color: var(--good); }
+.banner.bad { border-color: var(--bad); } .banner.bad .t { color: var(--bad); }
+.banner.off { border-color: var(--warn); } .banner.off .t { color: var(--warn); }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; min-width: 120px; }
+.okbtn { width: 100%; min-height: 84px; font-size: 26px; font-weight: 800; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1px solid currentColor; }
+.tag.rep { color: var(--rep); } .tag.comp { color: var(--comp); } .tag.room { color: var(--room); } .tag.sens { color: var(--info); }
+.pill-ok { color: var(--good); } .pill-help { color: var(--bad); font-weight: 800; } .pill-late { color: var(--warn); font-weight: 700; }
+.txt { white-space: pre-wrap; word-break: break-word; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+.filters button { min-height: 44px; }
+
+.kb { display: flex; gap: 6px; align-items: stretch; }
+.kb input { flex: 1; }
+.kb button.kbbtn { min-width: 52px; padding: 0 10px; font-size: 22px; }
+
+
+.chatgrid { display: grid; gap: 14px; grid-template-columns: 290px 1fr; }
+@media (max-width: 760px) { .chatgrid { grid-template-columns: 1fr; } }
+.thr { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin-bottom: 6px; min-height: 48px; }
+.thr .n { background: var(--bad); color: #fff; border-radius: 999px; padding: 0 8px; font-size: 13px; }
+#chatMsgs { height: min(52vh, 520px); overflow-y: auto; padding: 4px 2px; margin-bottom: 10px; }
+.msg { max-width: 82%; margin: 6px 0; padding: 8px 12px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); }
+.msg.me { margin-left: auto; border-color: var(--accent); }
+.msg .who { font-size: 13px; color: var(--muted); }
+#map { height: min(62vh, 640px); border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); }
+#mapNote { margin: 8px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--warn); }
+.covDia { background: var(--warn); border: 2px solid #000; transform: rotate(45deg); }
+.mk { width: 16px; height: 16px; border: 2px solid #fff; box-shadow: 0 0 0 1px #000; }
+.mk.rep { background: var(--rep); border-radius: 50%; } .mk.comp { background: var(--comp); } .mk.room { background: var(--room); border-radius: 3px; transform: rotate(45deg); }
+.mk.chk { background: var(--info); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.mk.hlp { background: var(--bad); border-radius: 50%; animation: pulse 1s ease-in-out infinite; width: 22px; height: 22px; }
+.mk.mkr { background: var(--warn); transform: rotate(45deg); border-radius: 2px; }
+.mk.me { background: #fff; border: 4px solid var(--accent); border-radius: 50%; }
+.leaflet-container { font: inherit; color: #111; }
+.leaflet-popup-content { color: #111; }
+
+.guide h3 { margin: 18px 0 6px; font-size: 20px; }
+.guide li { margin: 4px 0; } .guide code, code.k { font-family: var(--mono); background: var(--panel2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; }
+.guide .chk li { list-style: none; margin-left: -18px; }
+.notice { margin: 8px 0; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--warn); background: var(--panel); }
+.bar2 { height: 14px; border-radius: 7px; background: var(--panel2); border: 1px solid var(--line); overflow: hidden; }
+.bar2 > div { height: 100%; background: var(--good); }
+.bar2.warn > div { background: var(--warn); } .bar2.low > div { background: var(--bad); }
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--accent); border-radius: 12px; padding: 12px 20px; z-index: 2000; display: none; max-width: 90vw; }
+[hidden] { display: none !important; }
+@media (max-width: 720px) { .big { font-size: 30px; } .banner .t { font-size: 26px; } }
+@media print {
+  body { background: #fff; color: #000; } header.bar, nav.tabs, #toast { display: none !important; }
+  section.tab { display: none !important; } section#tab-guide { display: block !important; }
+  .card { border: 1px solid #999; background: #fff; } .guide code { background: #eee; }
+}
+
+.homebtns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) { .homebtns { grid-template-columns: 1fr; } }
+.bigbtn { width: 100%; min-height: 120px; font-size: 30px; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; border-width: 3px; line-height: 1.1; text-align: center; }
+.bigbtn small { font-size: 16px; font-weight: 600; opacity: .9; }
+.bigbtn.ok { border-color: var(--good); color: var(--good); background: transparent; }
+.bigbtn.ok:hover:not(:disabled) { background: var(--good); color: #02140c; }
+.bigbtn.help { border-color: var(--bad); color: var(--bad); background: transparent; }
+.bigbtn.help:hover:not(:disabled) { background: var(--bad); color: #fff; }
+.bigbtn.help.on { background: var(--bad); color: #fff; }
+.pickgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.pickgrid button { min-height: 58px; font-weight: 700; }
+#alerts { display: grid; gap: 8px; margin: 0 0 10px; }
+.al { border: 3px solid var(--bad); border-radius: 12px; background: var(--panel); padding: 12px 16px; }
+.al.warn { border-color: var(--warn); }
+.al .t { font-size: 24px; font-weight: 800; color: var(--bad); line-height: 1.15; } .al.warn .t { color: var(--warn); }
+.al .row { margin-top: 8px; }
+.ready { list-style: none; padding: 0; margin: 0; }
+.ready li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
+.ready .i { flex: 0 0 28px; font-weight: 900; text-align: center; }
+.ready .i.ok { color: var(--good); } .ready .i.warn { color: var(--warn); } .ready .i.bad { color: var(--bad); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center; justify-content: center; z-index: 4000; padding: 16px; }
+.dlg { background: var(--panel); border: 3px solid var(--bad); border-radius: 14px; padding: 22px; max-width: 540px; width: 100%; }
+.dlg h3 { margin: 0 0 8px; font-size: 26px; color: var(--bad); }
+.dlg .row button { flex: 1; min-height: 64px; font-size: 20px; font-weight: 800; }
+body.easy .adv { display: none !important; }
+.chrow { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.chrow .nm { flex: 1; min-width: 140px; font-weight: 700; }
+.chrow button { min-height: 42px; padding: 4px 12px; }
+.keybox { margin: 8px 0; padding: 10px 12px; border: 2px dashed var(--warn); border-radius: 10px; word-break: break-all; }
+details.fold { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 10px; }
+details.fold > summary { cursor: pointer; font-weight: 800; min-height: 44px; display: flex; align-items: center; }
+.calc label { display: block; margin: 8px 0 2px; color: var(--muted); font-size: 14px; }
+.calcout { margin-top: 12px; padding: 12px; border: 1px solid var(--accent); border-radius: 10px; }
+#conLog { height: 180px; overflow-y: auto; font: 13px var(--mono); background: var(--panel2); border: 1px solid var(--line); padding: 8px; white-space: pre-wrap; word-break: break-word; }
+.pwrline { font-size: 22px; font-weight: 800; }
+.lvl { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 800; font-size: 14px; border: 1px solid currentColor; }
+
+#splash { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: center; justify-content: center; overflow: hidden; background: radial-gradient(ellipse at 50% 42%, #08281f 0%, #03100c 55%, #010504 100%); color: #e4fff1; font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace; cursor: pointer; transition: opacity .6s ease; }
+#splash.out { opacity: 0; pointer-events: none; }
+#splash .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(61,255,168,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(61,255,168,.07) 1px, transparent 1px); background-size: 6vmin 6vmin; }
+#splash .rings { position: absolute; width: 120vmin; height: 120vmin; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(61,255,168,.25); box-shadow: 0 0 0 12vmin rgba(61,255,168,0), inset 0 0 0 12vmin rgba(0,0,0,0); }
+#splash .rings::before, #splash .rings::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(61,255,168,.22); inset: 14%; }
+#splash .rings::after { inset: 30%; }
+#splash .sweep { position: absolute; width: 120vmin; height: 120vmin; left: 50%; top: 50%; margin: -60vmin 0 0 -60vmin; border-radius: 50%; background: conic-gradient(from 0deg, rgba(61,255,168,0) 0deg, rgba(61,255,168,.0) 270deg, rgba(61,255,168,.28) 358deg, rgba(61,255,168,0) 360deg); animation: spl-sweep 4.5s linear infinite; }
+#splash .box { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3vmin; max-width: 96vw; }
+#splash svg { width: min(34vmin, 300px); height: auto; filter: drop-shadow(0 0 2.2vmin rgba(63,224,255,.55)); }
+#splash .kick { font-size: clamp(11px, 1.9vmin, 20px); letter-spacing: .5em; color: #3fe0ff; margin-top: 2.4vmin; text-transform: uppercase; }
+#splash h1 { margin: .6vmin 0 0; font-size: clamp(34px, 11vmin, 150px); letter-spacing: .18em; font-weight: 800; line-height: 1; text-shadow: 0 0 3vmin rgba(61,255,168,.55); padding-left: .18em; }
+#splash .sub { font-size: clamp(13px, 2.6vmin, 30px); letter-spacing: .28em; color: #a6d4bd; margin-top: 1.6vmin; text-transform: uppercase; }
+#splash .bar { width: min(60vmin, 70vw); height: 4px; background: rgba(61,255,168,.18); margin-top: 3.6vmin; overflow: hidden; border-radius: 2px; }
+#splash .bar i { display: block; height: 100%; width: 100%; background: #3dffa8; box-shadow: 0 0 10px #3dffa8; transform-origin: left; animation: spl-load 3.6s ease-out forwards; }
+#splash .ver { font-size: clamp(11px, 1.9vmin, 20px); color: #6e9c86; margin-top: 1.6vmin; letter-spacing: .2em; }
+#splash .cred { position: absolute; left: 0; right: 0; bottom: 2.4vmin; font-size: clamp(10px, 1.55vmin, 16px); line-height: 1.55; color: #6e9c86; text-align: center; padding: 0 3vw; }
+#splash .cred b { color: #a6d4bd; font-weight: 600; }
+#splash .tap { position: absolute; right: 2.4vmin; top: 2vmin; font-size: clamp(10px, 1.5vmin, 15px); color: #6e9c86; letter-spacing: .2em; }
+#splash .corner { position: absolute; width: 7vmin; height: 7vmin; border: 3px solid #3fe0ff; opacity: .8; }
+#splash .c1 { left: 2vmin; top: 2vmin; border-right: 0; border-bottom: 0; } #splash .c2 { right: 2vmin; bottom: 2vmin; border-left: 0; border-top: 0; }
+#splash .star { animation: spl-pulse 2.2s ease-in-out infinite; transform-origin: 50% 50%; }
+@keyframes spl-sweep { to { transform: rotate(360deg); } } @keyframes spl-load { from { transform: scaleX(0); } to { transform: scaleX(1); } } @keyframes spl-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { #splash .sweep, #splash .star { animation: none; } #splash .bar i { animation: none; } #splash { transition: none; } }
+</style>
+<style>
+/*TACTICAL-CSS*/
+:root {
+  --bg: #050b0a; --panel: #0a1512; --panel2: #0f1f1a; --line: #1d3b31; --ink: #e4fff1; --ink2: #a6d4bd; --muted: #6e9c86;
+  --accent: #3fe0ff; --good: #3dffa8; --warn: #ffb020; --bad: #ff4d4d; --info: #b08cff; --rep: #3dffa8; --comp: #3fe0ff; --room: #ffb020;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace; --glow: 0 0 10px rgba(63,224,255,.25);
+}
+:root[data-theme="light"] {
+  --bg: #e3e9e4; --panel: #f6faf6; --panel2: #e9efe9; --line: #aebfb4; --ink: #0b1a14; --ink2: #28443a; --muted: #50695c;
+  --accent: #0a6f8a; --good: #0b7a4f; --warn: #a15f00; --bad: #c4302b; --rep: #0b7a4f; --comp: #0a6f8a; --room: #a15f00; --glow: none;
+}
+html, body { background-color: var(--bg); }
+body { background-image: linear-gradient(rgba(61,255,168,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(61,255,168,.045) 1px, transparent 1px); background-size: 38px 38px; background-attachment: fixed; }
+:root[data-theme="light"] body { background-image: linear-gradient(rgba(10,70,50,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(10,70,50,.06) 1px, transparent 1px); }
+:root:not([data-theme="light"]) body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 3000; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); opacity: .35; }
+button { border-radius: 4px; letter-spacing: .03em; }
+button:hover { box-shadow: var(--glow); }
+:root[data-theme="light"] nav.tabs button[aria-pressed="true"] { color: var(--accent); background: var(--panel); }
+button.pri { background: transparent; color: var(--accent); border: 2px solid var(--accent); text-transform: uppercase; letter-spacing: .08em; box-shadow: inset 0 0 12px rgba(63,224,255,.12); }
+button.pri:hover:not(:disabled) { background: var(--accent); color: #031418; }
+button[aria-pressed="true"] { background: var(--accent); color: #031418; box-shadow: var(--glow); }
+:root[data-theme="light"] button[aria-pressed="true"], :root[data-theme="light"] button.pri:hover:not(:disabled) { color: #fff; }
+input[type=text], input[type=search], input[type=number], select { border-radius: 4px; font-family: var(--mono); }
+.brand { font-family: var(--mono); text-transform: uppercase; letter-spacing: .14em; }
+.brand::before { content: "\25E4 "; color: var(--accent); }
+.brand small { font-family: var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--accent); }
+.sid { border-radius: 2px; border-width: 2px; box-shadow: var(--glow), inset 0 0 10px rgba(63,224,255,.12); }
+.chip { border-radius: 2px; font-family: var(--mono); font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
+.chip i { box-shadow: 0 0 8px currentColor; }
+.chip[data-s="live"] i { box-shadow: 0 0 9px var(--good); animation: pulse 1.6s ease-in-out infinite; }
+.hud { display: flex; flex-wrap: wrap; gap: 4px 22px; align-items: center; padding: 7px 12px; margin: 0 0 10px; border: 1px solid var(--line); border-left: 4px solid var(--accent); background: linear-gradient(90deg, rgba(63,224,255,.08), transparent 70%); font-family: var(--mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hud b { color: var(--ink); font-weight: 700; margin-left: 4px; }
+.hud .hm[data-m="disaster"] b { color: var(--warn); animation: blink 1.2s step-end infinite; }
+nav.tabs { gap: 4px; border-bottom: 1px solid var(--line); }
+nav.tabs button { border-radius: 0; border: 1px solid var(--line); border-bottom: 3px solid transparent; font-family: var(--mono); text-transform: uppercase; letter-spacing: .1em; font-size: 15px; background: var(--panel); }
+nav.tabs button[aria-pressed="true"] { background: var(--panel2); color: var(--accent); border-bottom-color: var(--accent); box-shadow: var(--glow); }
+.card { position: relative; border-radius: 3px; border-color: var(--line); background: linear-gradient(180deg, var(--panel2), var(--panel) 38px); box-shadow: inset 0 0 24px rgba(63,224,255,.03); }
+.card::before, .card::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--accent); pointer-events: none; opacity: .85; }
+.card::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.card::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.card h2 { font-family: var(--mono); color: var(--accent); letter-spacing: .18em; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+.card h2::before { content: "\258C"; margin-right: 8px; }
+.banner { position: relative; border-radius: 3px; border-width: 1px; border-left-width: 10px; font-family: var(--mono); background: linear-gradient(90deg, rgba(255,255,255,.04), transparent 60%), var(--panel); }
+.banner::before { content: "LINK STATUS"; display: block; font-size: 12px; letter-spacing: .24em; color: var(--muted); margin-bottom: 4px; }
+.banner .t { text-transform: uppercase; letter-spacing: .08em; text-shadow: 0 0 14px currentColor; }
+.banner.good { box-shadow: 0 0 22px rgba(61,255,168,.12); }
+.banner.bad { box-shadow: 0 0 22px rgba(255,77,77,.2); animation: alarm 1.6s ease-in-out infinite; }
+.banner .s { font-family: var(--font); }
+.okbtn { border-radius: 3px; background-image: repeating-linear-gradient(135deg, rgba(255,176,32,.0) 0 14px, rgba(255,176,32,.10) 14px 28px); border-color: var(--warn); color: var(--warn); }
+.okbtn:hover:not(:disabled) { background: var(--warn); color: #1c1200; }
+.seg { border-radius: 2px; }
+table { font-size: 16px; } td, th { border-bottom-color: var(--line); } td.num, td.mono, .kv dd { font-family: var(--mono); }
+th { font-family: var(--mono); color: var(--accent); }
+.tag { border-radius: 2px; font-family: var(--mono); text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
+.msg { border-radius: 3px; } .bar2 { border-radius: 2px; } .bar2 > div { border-radius: 0; box-shadow: 0 0 8px currentColor; }
+#toast { border-radius: 3px; font-family: var(--mono); } #map { border-radius: 3px; }
+/* radar card */
+.unit-miss { color: #c4302b; font-weight: 700; }
+.unit-ok { color: #1a7f4b; font-weight: 700; }
+#unitList table { width: 100%; border-collapse: collapse; }
+#unitList td, #unitList th { padding: 6px 8px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line, #3a4a44); }
+#unitList input { width: 130px; text-transform: uppercase; }
+.radargrid { display: grid; grid-template-columns: minmax(280px, 460px) 1fr; gap: 18px; align-items: start; }
+.radarbox { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 460px; }
+.radarmap { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; z-index: 0; background: #0b1a15; }
+.radarmap .leaflet-control-container { display: none; }
+.radarbox > canvas { z-index: 1; position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 50%; }
+.radartip { position: absolute; pointer-events: none; background: rgba(0,10,8,.92); color: #e4fff1; border: 1px solid var(--accent); padding: 5px 9px; border-radius: 2px; font: 13px var(--mono); max-width: 260px; z-index: 5; }
+.radarlist { max-height: 340px; overflow-y: auto; border: 1px solid var(--line); background: var(--panel); }
+.rr { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px 10px; padding: 6px 10px; border-bottom: 1px solid var(--line); align-items: center; }
+.rr.hi { background: rgba(63,224,255,.12); }
+.rr .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rr .mt { grid-column: 2 / 4; font: 13px var(--mono); color: var(--muted); }
+.rr .sy { font-size: 20px; line-height: 1; text-align: center; }
+.rr .sy.rep { color: var(--rep); } .rr .sy.comp { color: var(--comp); } .rr .sy.room { color: var(--room); } .rr .sy.sens { color: var(--info); }
+.radarleg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; font: 13px var(--mono); color: var(--muted); }
+@media (max-width: 860px) { .radargrid { grid-template-columns: 1fr; } .radarbox { margin: 0 auto; } }
+@keyframes pulse { 50% { opacity: .45; } } @keyframes blink { 50% { opacity: .25; } }
+@keyframes alarm { 50% { box-shadow: 0 0 34px rgba(255,77,77,.45); } }
+@media (prefers-reduced-motion: reduce) { .banner.bad, .chip[data-s="live"] i, .hud .hm[data-m="disaster"] b { animation: none; } }
+@media print { body::after { display: none !important; } .hud, #radarCard { display: none !important; } body { background-image: none; } }
+</style>
+<style>
+/*LEAFLETCSS*/
+/*STATION-CSS*/
+</style>
+<style>.credit{max-width:1180px;margin:28px auto 22px;padding:14px 16px 0;border-top:1px dashed var(--line,#8886);text-align:center;color:var(--muted,#789);font-size:13px;line-height:1.55}.credit b{color:var(--ink2,inherit);font-weight:600}</style>
+</head>
+<body class="easy">
+<div id="splash" role="img" aria-label="LODESTAR CAIRN. Tap to continue.">
+  <div class="grid"></div><div class="rings"></div><div class="sweep"></div><div class="corner c1"></div><div class="corner c2"></div>
+  <div class="tap">TAP TO CONTINUE</div>
+  <div class="box">
+    <svg viewBox="0 0 120 150" aria-hidden="true"><g class="star" fill="#3fe0ff"><path d="M60 4 L65 22 L83 27 L65 32 L60 50 L55 32 L37 27 L55 22 Z"/><circle cx="60" cy="27" r="3" fill="#eafffa"/></g>
+      <g fill="#0f1f1a" stroke="#3dffa8" stroke-width="3"><ellipse cx="60" cy="128" rx="46" ry="15"/><ellipse cx="60" cy="100" rx="34" ry="13"/><ellipse cx="60" cy="75" rx="23" ry="11"/><ellipse cx="60" cy="54" rx="13" ry="8" /></g></svg>
+    <div class="kick">Cairn Tactical Unit</div>
+    <h1>CAIRN</h1>
+    <div class="sub">Lodestar &middot; emergency &amp; field communications</div>
+    <div class="bar"><i></i></div>
+    <div class="ver">WOLF REACTIVE SYSTEMS (WRS) &nbsp;&middot;&nbsp; VER. <span id="splVer">1.4.1</span></div>
+  </div>
+  <div class="cred"><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b><br>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div>
+</div>
+<div class="wrap">
+  <header class="bar">
+    <h1 class="brand">LODESTAR CAIRN<small>field station</small></h1>
+    <span id="sid" class="sid none" title="This station's ID. It is made once and kept.">LC-????????</span>
+    <span class="grow"></span>
+    <span id="status" class="chip" data-s="off"><i></i><span id="statusText">Not connected</span></span>
+    <button id="btnKb" aria-pressed="false" title="Show or hide the on-screen keyboard (the physical keyboard always works)">&#9000; Keyboard</button>
+    <button id="btnTheme" title="Dark or light">&#9788; Theme</button>
+    <button id="btnUpdates" type="button">Updates</button>
+    <button id="btnView" title="Easy view shows only the main screens. Full view shows everything.">Full view</button>
+    <button id="btnDemo" title="Fill the page with made-up data to practise">Practice</button>
+    <button id="btnConnect" class="pri">Connect radio</button>
+  </header>
+  <!--HUD-BEGIN--><div class="hud" role="status" aria-label="Station status strip"><span>Zulu<b id="hudZ">--:--:--</b></span><span>Local<b id="hudL">--:--:--</b></span><span class="hm" id="hudMw" data-m="normal">Mode<b id="hudM">OFFLINE</b></span><span>Rep/Cmp/Room 15 min<b id="hudC">0/0/0</b></span><span>GPS<b id="hudG">N/A</b></span></div><!--HUD-END-->
+  <div id="notice" class="notice" hidden></div>
+  <div id="alerts" aria-live="assertive"></div>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button data-tab="home" aria-pressed="true">Home</button>
+    <button data-tab="checkins">People<span id="lateBadge" class="badge" hidden>0</span></button>
+    <button data-tab="units">Units</button>
+    <button data-tab="chat">Chat<span id="chatBadge" class="badge" hidden>0</span></button>
+    <button data-tab="map">Map</button>
+    <button data-tab="power">Power</button>
+    <button data-tab="guide">Guide</button>
+    <button data-tab="files" class="st">Files</button>
+    <button data-tab="online" class="st">Online</button>
+    <button data-tab="station" class="adv">Station</button>
+    <button data-tab="nearby" class="adv">Nearby</button>
+    <button data-tab="log" class="adv">Log</button>
+  </nav>
+
+  <!-- ===================================================== HOME -->
+  <section class="tab on" id="tab-home">
+    <div id="homeBanner" class="banner off" role="status" aria-live="polite"><div class="t">Radio not connected</div><div class="s">Plug the radio into the hub, then press Connect radio.</div></div>
+    <div class="grid" style="margin-top:14px">
+      <div class="card span2">
+        <h2>Tell people how you are</h2>
+        <div class="homebtns">
+          <button id="hmOk" class="bigbtn ok" disabled>I'M OK<small>Sends your name tag and position</small></button>
+          <button id="hmHelp" class="bigbtn help" disabled>I NEED HELP<small>Calls for help every few minutes until you cancel</small></button>
+        </div>
+        <p id="hmLast" class="small muted" style="margin:10px 0 0"></p>
+        <div class="row" style="margin-top:6px"><label for="hmChan" class="small muted">These go to channel</label><select id="hmChan" style="max-width:300px"><option value="0">0 - Public</option></select>
+          <span class="small muted">(Public is heard by everyone nearby.)</span></div>
+      </div>
+      <div class="card">
+        <h2>Send a status</h2>
+        <div class="pickgrid" id="stGrid"></div>
+        <p class="small muted" style="margin:8px 0 0">One tap tells everyone what you need or are doing, with your position.</p>
+      </div>
+      <div class="card">
+        <h2>Mark this place</h2>
+        <div class="pickgrid" id="mkGrid"></div>
+        <p class="small muted" style="margin:8px 0 0">Stand at the spot, then tap what it is. It appears on everyone's map.</p>
+      </div>
+      <div class="card">
+        <h2>Mode</h2>
+        <div class="seg" role="group" aria-label="Mode"><button id="modeStandard" aria-pressed="true">STANDARD</button><button id="modeDisaster" aria-pressed="false">DISASTER</button></div>
+        <p class="small" style="margin:10px 0 0"><b>Standard</b> is for every day: the strongest radio power the rules allow, and it saves battery by itself when the battery runs low.</p>
+        <p class="small" style="margin:6px 0 0"><b>Disaster</b> is for an emergency: always the strongest allowed power, even on a low battery; quiet hours are off; the radio screen turns off sooner.</p>
+        <p class="small muted" id="modeNow" style="margin:6px 0 0"></p>
+        <div class="row" style="margin-top:8px"><button id="btnSound" aria-pressed="true">Sound for help calls: ON</button></div>
+      </div>
+      <div class="card">
+        <h2>Ready check</h2>
+        <ul class="ready" id="readyList"></ul>
+        <p id="readySum" class="pwrline" style="margin:10px 0 0"></p>
+      </div>
+      <div class="card span2">
+        <h2>Who is around</h2>
+        <div class="row" id="heardCounts"></div>
+        <div id="topReps" style="margin-top:10px"></div>
+        <div id="homeLatest" class="small" style="margin-top:10px"></div>
+      </div>
+      <div class="card span2">
+        <h2>Situation report</h2>
+        <p class="small muted" style="margin:0 0 8px">A short summary of who has checked in, who needs help, and what has been marked. Read it out, copy it, save it, or send the one-line version to everyone.</p>
+        <div class="row"><button id="btnSitrep" class="pri">Make a report</button><button id="btnSitrepSend" disabled>Send one-line version</button><button id="btnSitrepCopy" disabled>Copy</button><button id="btnSitrepSave" disabled>Save as a file</button></div>
+        <pre id="sitrepBox" class="txt mono small" style="margin-top:10px;white-space:pre-wrap" hidden></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== STATION -->
+  <section class="tab" id="tab-station">
+    <div id="banner" class="banner off" role="status" aria-live="polite"><div class="t">Radio not connected</div><div class="s">Plug the radio into the hub, then press Connect radio.</div></div>
+    <div class="grid" style="margin-top:14px">
+      <div class="card">
+        <h2>Where &amp; when</h2>
+        <dl class="kv" id="whereBox"></dl>
+        <div class="row" style="margin-top:10px"><button id="btnSetClock">Set radio clock from this tablet</button></div>
+      </div>
+<!--RADAR-BEGIN-->      <div class="card span2" id="radarCard">
+        <h2>Radar &middot; contacts heard now</h2>
+        <div class="radargrid">
+          <div class="radarbox"><div id="radarMapDiv" class="radarmap" hidden></div><canvas id="radarCv" role="img" aria-label="Radar of the repeaters, companions and room servers this station has heard recently. The same contacts are listed beside it."></canvas><div class="radartip" id="radarTip" hidden></div></div>
+          <div>
+            <div class="row"><label for="radarWin" class="small muted">Show contacts heard in the last</label>
+              <select id="radarWin" style="max-width:170px"><option value="300000">5 minutes</option><option value="900000" selected>15 minutes</option><option value="3600000">1 hour</option></select>
+              <label class="small muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="radarMapOn" checked> Show map under radar</label></div>
+            <p class="small muted" id="radarMapNote" style="margin:6px 0 0" hidden></p>
+            <div id="radarList" class="radarlist" style="margin-top:10px"></div>
+            <div class="radarleg"><span><b style="color:var(--rep)">&#9679;</b> repeater</span><span><b style="color:var(--comp)">&#9650;</b> companion</span><span><b style="color:var(--room)">&#9670;</b> room server</span><span>solid = position known</span><span>hollow = placed by signal strength</span></div>
+            <p class="small muted" id="radarNote" style="margin:8px 0 0"></p>
+          </div>
+        </div>
+      </div>
+<!--RADAR-END-->
+      <div class="card span2">
+        <h2>Latest messages</h2>
+        <div id="latestMsgs" class="small"></div>
+      </div>
+      <div class="card">
+        <h2>Radio</h2>
+        <dl class="kv" id="radioBox"></dl>
+      </div>
+      <div class="card span2">
+        <h2>Console (commands and replies)</h2>
+        <div id="conLog" aria-live="off"></div>
+        <form id="conForm" class="kb" style="margin-top:8px"><input id="conIn" type="text" placeholder="for example: cairn power status" aria-label="Command to send to the radio" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="kbbtn" data-kbfor="conIn" title="On-screen keyboard">&#9000;</button><button class="pri" type="submit">Send</button></form>
+        <p class="small muted" style="margin:6px 0 0">Type <span class="mono">cairn</span> for the list of commands. Every command here is also in the field guide.</p>
+      </div>
+      <div class="card">
+        <h2>Journal</h2>
+        <dl class="kv" id="journalBox"></dl>
+        <div class="row" style="margin-top:10px"><button data-goto="log">Open the log</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== CHAT -->
+  <section class="tab" id="tab-chat">
+    <div class="chatgrid">
+      <div class="card">
+        <h2>Conversations</h2>
+        <div id="threadList"></div>
+        <label class="muted small" for="dmPick">Start a direct message</label>
+        <select id="dmPick"><option value="">Choose a person or room...</option></select>
+        <details class="fold" id="chanMgr">
+          <summary>Channels: add or remove</summary>
+          <p class="small muted" style="margin:6px 0">A channel is a group everyone with the same name (and key) can read. <b>Public</b> is heard by everyone nearby. Slots used: <b id="chUsed">?</b> of <b id="chMax">40</b>.</p>
+          <div id="chanList"></div>
+          <div id="keyBox" class="keybox" hidden></div>
+          <h3 style="margin:14px 0 4px;font-size:17px">Join an open channel</h3>
+          <p class="small muted" style="margin:0 0 4px">Anyone who types the same name joins the same channel, so do not use it for secrets. Letters, numbers and dashes.</p>
+          <div class="kb"><span style="align-self:center;font-weight:800;font-size:22px">#</span><input id="chTag" type="text" placeholder="water-tank" aria-label="Open channel name" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="kbbtn" data-kbfor="chTag" title="On-screen keyboard">&#9000;</button><button id="btnChTag" class="pri" disabled>Add</button></div>
+          <h3 style="margin:14px 0 4px;font-size:17px">Make a private channel</h3>
+          <p class="small muted" style="margin:0 0 4px">The radio makes a secret key. Only people you give the name and key to can read it.</p>
+          <div class="kb"><input id="chNew" type="text" placeholder="Family" aria-label="Private channel name" autocomplete="off" maxlength="31"><button class="kbbtn" data-kbfor="chNew" title="On-screen keyboard">&#9000;</button><button id="btnChNew" class="pri" disabled>Make</button></div>
+          <h3 style="margin:14px 0 4px;font-size:17px">Join a private channel</h3>
+          <p class="small muted" style="margin:0 0 4px">Type the name and the 32-character key you were given.</p>
+          <div class="kb"><input id="chPN" type="text" placeholder="Name" aria-label="Private channel name to join" autocomplete="off" maxlength="31"><button class="kbbtn" data-kbfor="chPN" title="On-screen keyboard">&#9000;</button></div>
+          <div class="kb" style="margin-top:6px"><input id="chPK" type="text" placeholder="32 letters and numbers (0-9, a-f)" aria-label="Channel key" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32"><button class="kbbtn" data-kbfor="chPK" title="On-screen keyboard">&#9000;</button><button id="btnChPriv" class="pri" disabled>Join</button></div>
+          <p class="small muted" id="chMsg" style="margin:8px 0 0"></p>
+        </details>
+      </div>
+      <div class="card">
+        <h2 id="threadTitle">Messages</h2>
+        <div id="chatMsgs" aria-live="polite"></div>
+        <div class="kb">
+          <input id="chatText" type="text" placeholder="Type a message" aria-label="Message to send" autocomplete="off">
+          <button class="kbbtn" data-kbfor="chatText" title="On-screen keyboard">&#9000;</button>
+          <button id="btnSend" class="pri" disabled>Send</button>
+        </div>
+        <p class="small muted" style="margin:6px 0 0"><span id="chatCount">0</span>/140 &middot; <span id="chatNote"></span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== NEARBY -->
+  <section class="tab" id="tab-nearby">
+    <div class="filters">
+      <span class="muted">Heard in</span>
+      <button data-win="900000" aria-pressed="true">15 min</button><button data-win="3600000" aria-pressed="false">1 hour</button><button data-win="86400000" aria-pressed="false">24 hours</button><button data-win="0" aria-pressed="false">Ever</button>
+      <span class="muted" style="margin-left:14px">Sort</span>
+      <button data-sort="snr" aria-pressed="true">Signal</button><button data-sort="recent" aria-pressed="false">Most recent</button><button data-sort="dist" aria-pressed="false">Distance</button>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="card"><h2>Repeaters</h2><div id="nbRep"></div></div>
+      <div class="card"><h2>Room servers</h2><div id="nbRoom"></div></div>
+      <div class="card"><h2>Companions (people)</h2><div id="nbComp"></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== CHECK-INS -->
+  <section class="tab" id="tab-checkins">
+    <div class="grid">
+
+      <div class="card span2">
+        <h2>Needs and places</h2>
+        <div id="needsBox"></div>
+      </div>
+      <div class="card span2">
+        <div class="row">
+          <h2 style="margin:0">People who have reported</h2><span class="grow"></span>
+          <label class="muted small" for="lateMin">Overdue after (minutes)</label>
+          <input id="lateMin" type="number" min="1" max="1440" value="30" style="width:96px">
+        </div>
+        <p class="small muted">Built from every CAIRN message heard: I'M OK, NEEDS HELP, status, marked places and low-battery warnings. Tap <b>Got it</b> on a help call once someone is dealing with it.</p>
+        <div id="rosterBox" style="overflow-x:auto"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== LOG -->
+  <section class="tab" id="tab-units">
+    <div class="grid">
+      <div class="card span2" id="unitCard">
+        <h2>Remote units (CRU) <span class="muted small" id="unitCount"></span></h2>
+        <p class="small" style="margin:0 0 6px">Bound to this CAIRN: <b class="mono" id="unitBound">LC-????????</b></p>
+        <p class="small muted" style="margin:0 0 8px">Bind a companion or repeater to this CAIRN by its radio ID. Each one gets a CAIRN remote unit (CRU) ID, like CRU-01, and a name. The list is kept on this CAIRN radio. A unit shows where it is only if its radio has GPS and sends adverts.</p>
+        <div id="unitList"></div>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap">
+          <select id="unitPick" aria-label="Heard radios not yet registered" style="max-width:260px"></select>
+          <input id="unitId" placeholder="or type a radio ID (12+ hex)" aria-label="Radio ID" style="max-width:220px" autocomplete="off">
+          <input id="unitCall" placeholder="NAME" aria-label="Name" maxlength="12" style="max-width:150px;text-transform:uppercase" autocomplete="off">
+          <input id="unitCru" type="number" min="1" max="99" placeholder="CRU no. (auto)" aria-label="CRU number, leave empty to assign the next free one" style="max-width:130px">
+          <button id="unitAdd">Bind to this CAIRN</button>
+        </div>
+        <div class="row" style="margin-top:8px"><label for="unitMiss" class="small muted">Flag a unit as missing when not heard for</label><input id="unitMiss" type="number" min="1" max="1440" style="width:80px"> <span class="small muted">minutes</span></div>
+        <p class="small" id="unitNote" style="margin:6px 0 0"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-log">
+    <div class="card">
+      <div class="filters">
+        <button data-kind="all" aria-pressed="true">All</button><button data-kind="m" aria-pressed="false">Messages</button><button data-kind="a" aria-pressed="false">Adverts</button>
+        <button data-kind="c" aria-pressed="false">Check-ins</button><button data-kind="b" aria-pressed="false">Boots</button>
+        <div class="kb" style="flex:1;min-width:220px"><input id="logSearch" type="search" placeholder="Search the log" aria-label="Search the log"><button class="kbbtn" data-kbfor="logSearch" title="On-screen keyboard">&#9000;</button></div>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <button id="btnCsv">Download CSV</button><button id="btnJsonl">Download all data (JSON lines)</button>
+        <button id="btnReload">Reload from the radio</button><button id="btnErase" class="danger">Erase the radio's copy</button>
+        <span class="grow"></span><span id="logCount" class="muted small"></span>
+      </div>
+      <div style="overflow-x:auto"><table id="logTable"><thead><tr><th>Time</th><th>What</th><th>From</th><th>Detail</th></tr></thead><tbody></tbody></table></div>
+      <p class="small muted" id="logMore"></p>
+    </div>
+  </section>
+
+  <!-- ===================================================== MAP -->
+  <section class="tab" id="tab-map">
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <label for="tileSel" class="muted">Map</label>
+        <select id="tileSel" style="max-width:340px"><option value="carto">Street map (needs internet)</option></select>
+        <button id="btnFit">Show everything</button><button id="btnFollow" aria-pressed="true">Follow me</button>
+        <label class="small muted" title="Sends the points of your trip to the public OSRM routing service over the internet so the line can be lined up with the roads. Off by default."><input type="checkbox" id="snapRoads"> Snap trip to roads (online)</label>
+        <span class="small muted">Green circle repeater, blue square companion, orange diamond room server, purple pin check-in, amber diamond last place with a usable repeater.</span>
+      </div>
+      <div id="mapNote" hidden></div>
+      <div id="map"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>Maps for use with no internet</h2>
+      <p class="small muted">Do this at home on Wi-Fi: pick a region, download it, then load the file here. The page keeps it in the tablet's browser and switches to it whenever there is no internet.</p>
+      <div class="row">
+        <select id="regSel" style="max-width:360px"><option value="">Loading the list...</option></select>
+        <a id="regDl" class="btnlink" href="#" target="_blank" rel="noopener" aria-disabled="true"><button disabled id="regDlBtn">Download</button></a>
+        <label class="btnlike"><input id="mapFile" type="file" accept=".pmtiles" multiple hidden><button type="button" id="btnLoadMap">Load a map file</button></label>
+      </div>
+      <p id="regNote" class="small muted"></p><p id="offNote" class="small"></p>
+      <ul id="offList" style="padding-left:18px"></ul>
+    </div>
+  </section>
+
+<!--STATION-HTML-->
+  <!-- ===================================================== POWER -->
+  <section class="tab" id="tab-power">
+    <div class="grid">
+      <div class="card span2" id="pwrCard">
+        <h2>Radio power and settings</h2>
+        <div id="pwrNow" class="pwrline">Connect the radio to see its settings.</div>
+        <p class="small muted" id="pwrWhy" style="margin:4px 0 10px"></p>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+          <div><label class="small muted">Transmit power (Standard mode)</label><div class="seg" role="group" aria-label="Power"><button id="pwFull" aria-pressed="true">FULL</button><button id="pwSaver" aria-pressed="false">SAVER</button></div></div>
+          <div><label class="small muted" for="antIn">Antenna gain, dBi (printed on the antenna; the stock one is about 2)</label><div class="kb"><input id="antIn" type="number" min="0" max="20" step="0.5" value="2"><button id="btnAnt">Set</button></div></div>
+          <div><label class="small muted" for="autoSel">Automatic I'M OK</label><select id="autoSel"><option value="0">Off</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option><option value="60">Every hour</option><option value="120">Every 2 hours</option><option value="240">Every 4 hours</option></select></div>
+          <div><label class="small muted" for="bcnSel">Help call repeats every</label><select id="bcnSel"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select></div>
+          <div><label class="small muted">Battery saving (below 25% on battery)</label><div class="seg" role="group" aria-label="Battery saving"><button id="ecoOn" aria-pressed="true">ON</button><button id="ecoOff" aria-pressed="false">OFF</button></div></div>
+          <div><label class="small muted">Send LOW BATTERY message at 15%</label><div class="seg" role="group" aria-label="Low battery message"><button id="lbOn" aria-pressed="true">ON</button><button id="lbOff" aria-pressed="false">OFF</button></div></div>
+        </div>
+        <p class="small muted" style="margin:10px 0 0">About the power limit: US rules for radios used without a licence (FCC Part 15, section 15.247) allow up to 1 watt at the antenna with an antenna up to 6 dBi, and less with a bigger antenna. There is no higher limit for emergencies for unlicensed radios, so <b>Standard</b> and <b>Disaster</b> both use the most the rules allow. The CAIRN radio works out the setting from the antenna gain you enter. Using it outside the US, or on another frequency, follow your own country's rules.</p>
+      </div>
+      <div class="card"><h2>This radio</h2><div id="radioBatt"></div></div>
+      <div class="card"><h2>This tablet</h2><div id="tabBatt" class="muted">Checking...</div></div>
+      <div class="card span2 calc" id="calcCard">
+        <h2>How long will my power last?</h2>
+        <p class="small muted" style="margin:0 0 6px">Fill in what you have. The answer is an estimate, not a promise: real use varies with the cold, the tablet's screen, and how often you send.</p>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+          <div><label for="cBank">Power bank size (Wh; mAh x 3.7 / 1000)</label><input id="cBank" type="number" min="0" step="1" value="74"></div>
+          <div><label for="cBanks">How many</label><input id="cBanks" type="number" min="1" max="10" step="1" value="2"></div>
+          <div><label for="cTab">Tablet draw (watts; screen on about 4 to 6)</label><input id="cTab" type="number" min="0" step="0.5" value="5"></div>
+          <div><label for="cTabH">Tablet hours in use per day</label><input id="cTabH" type="number" min="0" max="24" step="1" value="6"></div>
+          <div><label for="cSol">Solar panel (watts, as printed)</label><input id="cSol" type="number" min="0" step="1" value="20"></div>
+          <div><label for="cSun">Good sun hours per day (winter 2 to 3, summer 5 to 6)</label><input id="cSun" type="number" min="0" max="12" step="0.5" value="4"></div>
+          <div><label for="cMsgs">Messages sent per hour</label><input id="cMsgs" type="number" min="0" max="600" step="1" value="12"></div>
+        </div>
+        <div id="calcOut" class="calcout"></div>
+        <p class="small muted" style="margin:8px 0 0">How this is worked out: the two radios and the hub are counted at their listening draw (about 1.2 W together) plus a little extra for each message sent; a power bank gives about 80% of its printed size; solar gives about 70% of panel watts times sun hours. Datasheet figures for the Heltec V4: listening about 75 mA, sending about 400 mA at 22 dBm and 750 mA at 27 dBm (battery side); a radio sending at full power needs a hub that can supply short 750 mA peaks.</p>
+      </div>
+      <div class="card span2">
+        <h2>Power banks and other supplies (a timer you set)</h2>
+        <p class="small muted">The radios cannot see how full a power bank is, so this is a reminder, not a gauge. Enter how long you expect each one to last, and press the button when you start (or recharge) it.</p>
+        <div id="supplies"></div>
+        <div class="row" style="margin-top:10px"><button id="btnAddSupply">Add a supply</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== GUIDE -->
+  <section class="tab guide" id="tab-guide">
+<!--GUIDE-->
+  </section>
+</div>
+<footer class="credit" id="credit"><div><b>Engineered by: Aries Thorne &amp; Todd Steinhauer for Wolf Reactive Systems (WRS)</b></div><div>Special thanks to the NTXMESH community, Meshcore Community, and Pat Steinhauer-Scates for their guidance and support.</div></footer>
+<div id="toast" role="status"></div>
+
+<!--LIBS-->
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const N = (v) => (Number.isFinite(+v) ? +v : 0);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+const jget = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const jset = (k, v) => store.set(k, JSON.stringify(v));
+const now = () => Date.now();
+const fmtAge = (ms) => { const s = Math.max(0, Math.round(N(ms) / 1000)); return s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : s < 172800 ? (s / 3600).toFixed(1) + " h" : Math.round(s / 86400) + " d"; };
+const fmtTime = (ms) => { if (!ms) return "?"; const d = new Date(ms), t = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); return d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + t; };
+function toast(t, ms) { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => { e.style.display = "none"; }, ms || 3500); }
+function notice(t) { const n = $("notice"); if (t) { n.textContent = t; n.hidden = false; } else n.hidden = true; }
+
+/* ---------------------------------------------------------------- state */
+const S = {
+  mode: "off",            // off | serial | demo
+  frame: null, frameAt: 0,
+  cairn: null, cairnAt: 0,
+  nodes: new Map(),       // key -> node
+  journal: [],            // parsed records, oldest first
+  jset: new Set(),        // raw lines already held
+  checkins: new Map(),    // station id -> latest check-in
+  lastUsable: jget("cairn-lastUsable", null),
+  tab: store.get("cairn-tab") || "home",
+  easy: store.get("cairn-view") !== "full", sound: store.get("cairn-sound") !== "0", ack: jget("cairn-ack", {}), marks: [], mkset: new Set(), con: [], mi: false, mc: 0, chmax: 40, beeped: new Set(), rmAsk: -1, keyShow: null, tabBat: null,
+  win: 900000, sort: "snr", kind: "all", search: "",
+  port: null, reader: null, writer: null, keep: null, demo: null,
+  roster: jget("cairn-roster", {}), supplies: jget("cairn-supplies", [{ name: "Power bank 1", hours: 24, start: 0 }, { name: "Power bank 2", hours: 24, start: 0 }]),
+  units: [], unitMax: 48, chans: [], thread: store.get("cairn-thread") || "c:", extra: new Set(), chatSeen: +store.get("cairn-chatseen") || 0,
+  off: new Map(), map: null, kbOn: store.get("cairn-kb") === "1",
+};
+const TYPE = { 1: ["comp", "companion"], 2: ["rep", "repeater"], 3: ["room", "room server"], 4: ["sens", "sensor"] };
+// Every position-carrying CAIRN message: "<ID> <what> at: <lat>,<lon>" or "... at: no GPS fix".
+// what is Reporting (I'm OK), NEEDS HELP, STATUS <label>, MARK <label> or LOW BATTERY <n>%.   Groups: 1 id, 2 what, 3 lat, 4 lon.
+const CHECKIN_RE = /\b(LC-(?:[A-HJ-NP-Z2-9]{8}|[A-HJ-NP-Z2-9]{5})) (Reporting|NEEDS HELP|STATUS [A-Z ]+?|MARK [A-Z ]+?|LOW BATTERY \d+%) at: (?:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)|no GPS fix)/;
+const STATUS_LABEL = ["", "NEED MEDICAL", "NEED WATER", "NEED FOOD", "NEED SHELTER", "NEED TRANSPORT", "EVACUATING", "STAYING PUT", "CAN HELP"];
+const MARK_LABEL = ["", "WATER", "SHELTER", "MEDICAL AID", "HAZARD", "MEETING POINT", "ROAD BLOCKED", "SUPPLIES"];
+const DASH_VER = "1.4.1";
+const STN = !!window.CairnBridge;   // true only inside the CAIRN Station tablet app
+const nice = (l) => l.charAt(0) + l.slice(1).toLowerCase();
+const PLAUSIBLE = (sec) => sec > 1700000000 && sec < 4102444800;
+
+/* ---------------------------------------------------------------- helpers: distance, bearing */
+function distM(a, b) {
+  const R = 6371000, r = Math.PI / 180, dLat = (b[0] - a[0]) * r, dLon = (b[1] - a[1]) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function bearing(a, b) {
+  const r = Math.PI / 180, y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r);
+  const x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+}
+const COMP = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const compass = (d) => COMP[Math.round(d / 45) % 8];
+const fmtDist = (m) => (S.mi ? (m < 305 ? Math.round(m * 3.28084) + " ft" : (m / 1609.344).toFixed(m < 16093 ? 1 : 0) + " mi") : (m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(m < 10000 ? 1 : 0) + " km"));
+function here() { const g = S.frame && S.frame.gps; return g && g.fix ? [+g.lat, +g.lon] : null; }
+function relPos(p) { const h = here(); if (!h || !p) return ""; return fmtDist(distM(h, p)) + " " + compass(bearing(h, p)); }
+
+/* ---------------------------------------------------------------- IndexedDB: journal copy and offline maps */
+const DB = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open("lodestar-cairn", 1);
+        r.onupgradeneeded = () => { const d = r.result; d.createObjectStore("maps", { keyPath: "name" }); d.createObjectStore("journal", { keyPath: "l" }); };
+        r.onsuccess = () => { this.db = r.result; res(r.result); };
+        r.onerror = () => rej(r.error || new Error("IndexedDB failed"));
+      } catch (e) { rej(e); }
+    });
+  },
+  async run(store, mode, fn) {
+    const db = await this.open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, mode), st = tx.objectStore(store), rq = fn(st);
+      tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error || new Error("The browser refused to store this (out of space?)"));
+    });
+  },
+};
+
+/* ---------------------------------------------------------------- intake */
+const maxSeen = { t: 0 };
+function recTime(rec, rt) {                       // milliseconds, or 0 if unknown
+  if (PLAUSIBLE(rec.t)) return rec.t * 1000;
+  return rt || 0;
+}
+function addRecord(line, rt, persist) {
+  if (S.jset.has(line)) return false;
+  let rec; try { rec = JSON.parse(line); } catch (e) { return false; }
+  if (!rec || !rec.r) return false;
+  S.jset.add(line);
+  rec._l = line; rec._ms = recTime(rec, rt);
+  S.journal.push(rec);
+  if (persist !== false) DB.run("journal", "readwrite", (st) => st.put({ l: line, rt: rt || 0 })).catch(() => {});
+  if (rec.r === "m" || rec.r === "o") { const m = CHECKIN_RE.exec(rec.x || ""); if (m) noteCheckin(m, rec); }
+  if (rec.r === "a") noteAdvert(rec);
+  return true;
+}
+function noteCheckin(m, rec) {
+  const id = m[1], what = m[2], ms = rec._ms || now();
+  const lat = m[3] != null ? +m[3] : null, lon = m[4] != null ? +m[4] : null;
+  let c = S.checkins.get(id);
+  if (!c) { c = { id, ms: 0, lat: null, lon: null, from: "", chan: "", okMs: 0, helpMs: 0, helpLat: null, helpLon: null, status: null, lowbat: null }; S.checkins.set(id, c); }
+  if (ms >= c.ms) { c.ms = ms; if (rec.f) c.from = rec.f; if (rec.c) c.chan = rec.c; c.hops = rec.h; c.text = rec.x; }
+  if (lat != null && ms >= (c.posMs || 0)) { c.lat = lat; c.lon = lon; c.posMs = ms; }
+  if (what === "Reporting") { if (ms > c.okMs) c.okMs = ms; }
+  else if (what === "NEEDS HELP") { if (ms > c.helpMs) { c.helpMs = ms; c.helpLat = lat; c.helpLon = lon; } }
+  else if (what.indexOf("STATUS ") === 0) { if (!c.status || ms >= c.status.ms) c.status = { label: what.slice(7), ms }; }
+  else if (what.indexOf("MARK ") === 0) { const key = id + "|" + what + "|" + ms; if (!S.mkset.has(key)) { S.mkset.add(key); S.marks.push({ id, label: what.slice(5), lat, lon, ms, from: rec.f || "" }); } }
+  else if (what.indexOf("LOW BATTERY") === 0) { if (!c.lowbat || ms >= c.lowbat.ms) c.lowbat = { pct: parseInt(what.slice(12), 10), ms }; }
+}
+function noteAdvert(r) {
+  if (!r.k) return;
+  const old = S.nodes.get(r.k);
+  const ms = r._ms || old && old.ms || 0;
+  const n = old || { k: r.k, name: "", type: 0, hops: 99, snr: -99, rssi: -127, ms: 0, first: ms, count: 0, apos: null, hpos: null };
+  n.type = r.ty || n.type; if (r.n) n.name = r.n;
+  if (ms >= n.ms) { n.ms = ms; n.hops = r.h; n.snr = +r.s; n.rssi = +r.rs; }
+  if (!n.first || (ms && ms < n.first)) n.first = ms;
+  n.count++;
+  if (r.la != null) { n.apos = [+r.la, +r.lo]; trailAdd(n, n.apos, ms); }
+  if (r.hla != null) n.hpos = [+r.hla, +r.hlo];
+  S.nodes.set(r.k, n);
+}
+function onFound(f) {
+  if (!f || typeof f.k !== "string") return;
+  const old = S.nodes.get(f.k);
+  const ms = now() - (+f.ago || 0) * 1000;
+  const n = old || { k: f.k, name: "", type: 0, hops: 99, snr: -99, rssi: -127, ms: 0, first: now() - (+f.first || 0) * 1000, count: 0, apos: null, hpos: null };
+  n.type = +f.t || n.type; if (f.n) n.name = f.n;
+  if (ms >= n.ms) { n.ms = ms; n.hops = +f.hop; n.snr = +f.sn; n.rssi = +f.rs; }
+  n.count = Math.max(n.count, +f.c || 0);
+  if (f.alat != null) { n.apos = [+f.alat, +f.alon]; trailAdd(n, n.apos, ms); }
+  if (f.hlat != null) n.hpos = [+f.hlat, +f.hlon];
+  S.nodes.set(f.k, n);
+}
+/* ---------------------------------------------------------------- registered units (kept on the radio), trails, trip line */
+function unitFor(k) { k = String(k || "").toLowerCase(); if (k.length < 12) return null; for (const u of S.units) if (k.indexOf(u.k) === 0) return u; return null; }
+const cruTxt = (u) => "CRU-" + String(u.n || 0).padStart(2, "0");
+function lbl(n, none) { const u = unitFor(n.k); return u ? u.c : (n.name || (none != null ? none : n.k.slice(0, 6))); }
+const ROUTE_KEY = "cairn-route", TRAIL_KEY = "cairn-trails";
+S.route = []; S.trails = new Map();
+try { const r = JSON.parse(store.get(ROUTE_KEY) || "[]"); if (Array.isArray(r)) S.route = r.filter((p) => Array.isArray(p) && isFinite(p[0]) && isFinite(p[1])); } catch (e) { /* none */ }
+try { const t = JSON.parse(store.get(TRAIL_KEY) || "{}"); Object.keys(t).forEach((k) => { if (Array.isArray(t[k])) S.trails.set(k, t[k].filter((p) => Array.isArray(p) && isFinite(p[0]) && isFinite(p[1]))); }); } catch (e) { /* none */ }
+let _saveT = 0;
+function saveTrips() { clearTimeout(_saveT); _saveT = setTimeout(() => { try { store.set(ROUTE_KEY, JSON.stringify(S.route.slice(-20000))); const o = {}; S.trails.forEach((v, k) => { o[k] = v.slice(-600); }); store.set(TRAIL_KEY, JSON.stringify(o)); } catch (e) { /* storage full or blocked */ } }, 4000); }
+function addRoutePoint(g, ts) {
+  if (S.mode === "demo" || !g || !g.fix || g.lat == null || g.lon == null) return;
+  const p = [+(+g.lat).toFixed(6), +(+g.lon).toFixed(6), Math.floor(ts / 1000)], last = S.route[S.route.length - 1];
+  if (last && distM(last, p) < 4) return;
+  S.route.push(p); if (S.route.length > 40000) S.route = S.route.filter((_, i) => i % 2 === 0 || i === S.route.length - 1);
+  saveTrips();
+}
+function trailAdd(n, pos, ms) {
+  if (!pos || !unitFor(n.k)) return;
+  const key = unitFor(n.k).k; let t = S.trails.get(key); if (!t) { t = []; S.trails.set(key, t); }
+  const last = t[t.length - 1]; if (last && distM(last, pos) < 15) return;
+  t.push([+pos[0].toFixed(6), +pos[1].toFixed(6), Math.floor((ms || now()) / 1000)]); if (t.length > 800) t.splice(0, t.length - 800);
+  saveTrips();
+}
+const UNIT_COLS = ["#d6336c", "#1c7ed6", "#e8590c", "#7048e8", "#0ca678", "#c2255c", "#f08c00", "#5f3dc4"];
+const unitCol = (k) => { let h = 0; for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0; return UNIT_COLS[h % UNIT_COLS.length]; };
+function chaikin(pts) { if (pts.length < 3) return pts; const o = [pts[0]]; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1]; o.push([0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]], [0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]]); } o.push(pts[pts.length - 1]); return o; }
+const SNAP = { on: store.get("cairn-snap") === "1", done: [], upto: 0, busy: false, dirty: false, failAt: 0 };
+function routeSegments() {
+  const R = S.route; if (SNAP.upto > R.length) { SNAP.done = []; SNAP.upto = 0; }
+  const ll = (a) => a.map((p) => [p[0], p[1]]);
+  if (SNAP.on && SNAP.done.length) { const segs = SNAP.done.slice(), tail = ll(R.slice(SNAP.upto)); if (tail.length > 1) segs.push(chaikin(tail)); return segs; }
+  const all = ll(R), k = Math.max(0, all.length - 1500);
+  return [all.slice(0, k).concat(chaikin(all.slice(k)))];
+}
+async function snapMore() {
+  if (!SNAP.on || SNAP.busy || Date.now() - SNAP.failAt < 60000) return;
+  const R = S.route; if (SNAP.upto > R.length) { SNAP.done = []; SNAP.upto = 0; }
+  SNAP.busy = true;
+  try {
+    for (let guard = 0; guard < 40 && SNAP.on; guard++) {
+      const pts = []; let last = null, idx = SNAP.upto;
+      for (let i = SNAP.upto; i < R.length && pts.length < 80; i++) { const p = R[i]; if (!last || distM(last, p) >= 12) { pts.push(p); last = p; } idx = i + 1; }
+      if (pts.length < 40) break;
+      const url = "https://router.project-osrm.org/match/v1/driving/" + pts.map((p) => p[1] + "," + p[0]).join(";") + "?geometries=geojson&overview=full&gaps=ignore&radiuses=" + pts.map(() => 30).join(";");
+      const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json(); if (j.code !== "Ok" || !j.matchings || !j.matchings.length) throw new Error(j.code || "no match");
+      j.matchings.forEach((m) => SNAP.done.push(m.geometry.coordinates.map((c) => [c[1], c[0]])));
+      SNAP.upto = Math.max(SNAP.upto + 1, idx - 1); SNAP.dirty = true;
+    }
+  } catch (e) { SNAP.failAt = Date.now(); const n = $("mapNote"); if (n) { n.hidden = false; n.textContent = "Could not line the trip up with roads just now (" + (e.message || e) + "). The plain trip line is shown; it will try again in a minute."; } }
+  SNAP.busy = false;
+}
+function routeWidth() { if (!S.map || !S.routeLine) return; const z = S.map.getZoom(), w = Math.max(3, Math.min(10, Math.round((z - 8) * 0.8) + 2)); S.routeLine.setStyle({ weight: w }); S.routeCase.setStyle({ weight: w + 4 }); S.gTrail.eachLayer((l) => l.setStyle({ weight: Math.max(2, w - 2) })); }
+function unitMissing() {      // registered units that were heard before but not within the limit
+  const lim = Math.max(1, +store.get("cairn-missmin") || 30) * 60000, t = now(), out = [];
+  S.units.forEach((u) => { let best = null; S.nodes.forEach((n) => { if (n.k.toLowerCase().indexOf(u.k) === 0 && (!best || n.ms > best.ms)) best = n; }); if (best && best.ms && t - best.ms > lim) out.push({ u, ago: t - best.ms }); });
+  return out;
+}
+function nameFor(id) {
+  if (!id) return "";
+  const u = String(id).toUpperCase();
+  for (const n of S.nodes.values()) if (n.k.indexOf(u) === 0 && n.name) return n.name;
+  return "";
+}
+function onFrame(f) {
+  S.frame = f; S.frameAt = now();
+  if (f.gps) addRoutePoint(f.gps, now());
+  if (typeof f.v === "string") S.mi = f.v.indexOf("mph") >= 0;
+  const best = (f.links || []).find((l) => l.best === 1);
+  if (best) {
+    S.lastUsable = { id: best.id, name: best.name || nameFor(best.id), sc: best.sc, snr: best.snr, rssi: best.rssi, at: now() };
+    jset("cairn-lastUsable", S.lastUsable);
+  }
+}
+function onLine(line) {
+  line = line.trim();
+  if (line[0] === "{") {
+    if (line.indexOf('"nova"') > 0 && line.indexOf('"nova"') < 4) { try { const o = JSON.parse(line); if (o.found) onFound(o.found); else onFrame(o); } catch (e) {} }
+    else if (line.indexOf('"cairn"') > 0 && line.indexOf('"cairn"') < 4) {
+      try {
+        const o = JSON.parse(line);
+        if (o.chans) { S.chans = o.chans; if (o.mc != null) S.mc = o.mc; if (o.max) S.chmax = o.max; }
+        if (o.units) { S.units = o.units.filter((u) => u && typeof u.k === "string"); if (o.max) S.unitMax = o.max; if (S.tab === "units") renderUnits(); }
+        if (o.chanres) onChanRes(o.chanres);
+        if (o.chankey) { S.keyShow = o.chankey; renderKeyBox(); }
+        if (o.id) { S.cairn = o; S.cairnAt = now(); maybeSetClock(o); }
+        if (o.dump === "end") { S.dumping = false; toast("Journal loaded from the radio (" + o.lines + " lines)."); }
+      } catch (e) {}
+    } else if (line.indexOf('{"r"') === 0) { if (addRecord(line, now(), true) && STN && !S.dumping) stLog("journal", line); }
+  } else if (line[0] === "#") { toast(line.slice(1).trim()); conPush(line); }
+}
+let clockAsked = 0;
+function maybeSetClock(o) {
+  if (!o.now) return;
+  const tab = Math.round(now() / 1000);
+  if (Math.abs(o.now - tab) > 30 && now() - clockAsked > 60000) { clockAsked = now(); send("cairn time " + tab); toast("Radio clock was off; set it from the tablet."); }
+}
+
+/* ---------------------------------------------------------------- serial */
+async function send(line) {
+  conPush("> " + line);
+  if (S.mode === "demo") { demoCommand(line); return; }
+  if (STN) { stSend(line); return; }
+  if (!S.writer) { toast("Not connected. Connect the radio first."); return; }
+  try { await S.writer.write(line + "\n"); } catch (e) { toast("Could not send: " + e.message); }
+}
+function setStatus(state, text) { $("status").dataset.s = state; $("statusText").textContent = text; }
+async function connect() {
+  if (STN) { stOpenGate(); return; }
+  if (S.mode === "serial") { await disconnect(false); return; }
+  if (!("serial" in navigator)) { notice("This browser cannot talk to USB devices. Use Chrome (version 148 or newer on Android, or any recent Chrome or Edge on a computer)."); return; }
+  notice("");
+  try {
+    stopDemo();
+    const kp = S.kept; S.kept = null;           // a port left open by Disconnect is picked up again as it is: reopening it would restart the radio
+    S.port = (kp && kp.readable && kp.writable) ? kp : await navigator.serial.requestPort();
+    if (!(S.port.readable && S.port.writable)) await S.port.open({ baudRate: 115200 });
+    // DTR and RTS both on is the one control-line state that does not restart these radios (any other combination reboots them)
+    try { await S.port.setSignals({ dataTerminalReady: true, requestToSend: true }); } catch (e) { /* this browser cannot set them */ }
+  } catch (e) { if (e.name !== "NotFoundError") notice("Could not open the radio's USB port: " + e.message + ". Close other apps that use it and try again."); return; }
+  S.mode = "serial"; setStatus("wait", "Connected, waiting for data"); $("btnConnect").textContent = "Disconnect";
+  const enc = new TextEncoderStream(); enc.readable.pipeTo(S.port.writable, { preventClose: true, preventAbort: true, preventCancel: true }).catch(() => {}); S.writer = enc.writable.getWriter();
+  const dec = new TextDecoderStream(); S.port.readable.pipeTo(dec.writable, { preventClose: true, preventAbort: true, preventCancel: true }).catch(() => {}); S.reader = dec.readable.getReader();
+  const hello = () => send("nova hello");
+  hello(); send("cairn id"); send("cairn chans"); send("cairn units"); S.dumping = true; send("cairn dump");
+  S.keep = setInterval(hello, 3000);
+  let buf = "";
+  try {
+    for (;;) {
+      const { value, done } = await S.reader.read(); if (done) break;
+      buf += value; let i;
+      while ((i = buf.indexOf("\n")) >= 0) { onLine(buf.slice(0, i)); buf = buf.slice(i + 1); }
+      if (buf.length > 40000) buf = "";
+    }
+  } catch (e) { /* unplugged */ }
+  await disconnect(true);
+}
+/* Leaving the page closes the port, which drops DTR/RTS one after the other and can restart the radio. Release both in one step first (best effort). */
+window.addEventListener("pagehide", () => { try { if (S.port && S.port.setSignals) S.port.setSignals({ dataTerminalReady: false, requestToSend: false }); } catch (e) {} });
+async function disconnect(lost) {
+  clearInterval(S.keep); S.keep = null;
+  const port = S.port, rd = S.reader, wr = S.writer;
+  S.port = S.reader = S.writer = null; S.mode = "off"; S.frame = null;
+  try { if (rd) await rd.cancel(); } catch (e) {}
+  try { if (wr) await wr.close(); } catch (e) {}
+  await new Promise((r) => setTimeout(r, 50));            // let the stream pipes let go of the port
+  // Closing the port drops DTR/RTS, which restarts the radio. A manual Disconnect only lets go of the streams; Connect picks the open port up again.
+  if (port && !lost && port.readable && port.writable) S.kept = port;
+  else if (port) { S.kept = null; try { await port.close(); } catch (e) {} }
+  $("btnConnect").textContent = "Connect radio";
+  setStatus("off", lost ? "Radio unplugged or closed" : "Not connected");
+}
+
+/* ---------------------------------------------------------------- tabs, keyboard, theme */
+function showTab(t) {
+  S.tab = t; store.set("cairn-tab", t);
+  document.querySelectorAll("section.tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
+  document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tab === t ? "true" : "false"));
+  if (t === "map") initMap();
+  if (t === "chat") renderChanMgr();
+  if (t === "chat") { S.chatSeen = now(); store.set("cairn-chatseen", String(S.chatSeen)); if (S.mode === "serial") send("cairn chans"); }
+  render();
+}
+document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.goto)));
+
+// The on-screen keyboard stays out of the way (inputmode "none") unless asked for: the header button turns it on for
+// every box, and the keyboard icon beside a box opens it for that box only.
+function applyKb() {
+  document.querySelectorAll("input[type=text], input[type=search], input[type=number]").forEach((i) => { i.setAttribute("inputmode", S.kbOn ? (i.type === "number" ? "numeric" : "text") : "none"); });
+  $("btnKb").setAttribute("aria-pressed", S.kbOn ? "true" : "false");
+}
+$("btnKb").addEventListener("click", () => { S.kbOn = !S.kbOn; store.set("cairn-kb", S.kbOn ? "1" : "0"); applyKb(); toast(S.kbOn ? "On-screen keyboard is ON for all boxes." : "On-screen keyboard is hidden. Use the physical keyboard, or the keyboard icon beside a box."); });
+document.querySelectorAll("[data-kbfor]").forEach((b) => b.addEventListener("click", () => {
+  const i = $(b.dataset.kbfor); i.setAttribute("inputmode", "text"); i.focus();
+  i.addEventListener("blur", () => applyKb(), { once: true });
+}));
+function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+$("btnTheme").addEventListener("click", () => { const cur = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"; applyTheme(cur === "dark" ? "" : "light"); store.set("cairn-theme", cur); });
+if (store.get("cairn-theme") === "light") applyTheme("light");
+
+/* ---------------------------------------------------------------- rendering */
+function row(k, v) { return "<dt>" + esc(k) + "</dt><dd>" + v + "</dd>"; }
+function nodeList(type) {
+  const win = S.win, t = now(), h = here();
+  let a = Array.from(S.nodes.values()).filter((n) => (type === 3 ? n.type >= 3 : n.type === type) && (win === 0 || (n.ms && t - n.ms <= win)));
+  const d = (n) => { const p = n.apos || n.hpos; return h && p ? distM(h, p) : 1e12; };
+  if (S.sort === "snr") a.sort((x, y) => y.snr - x.snr);
+  else if (S.sort === "recent") a.sort((x, y) => y.ms - x.ms);
+  else a.sort((x, y) => d(x) - d(y));
+  return a;
+}
+function nodeTable(a) {
+  if (!a.length) return '<p class="muted">None heard in this time.</p>';
+  let s = '<div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>ID</th><th class="num">Hops</th><th class="num">SNR</th><th class="num">RSSI</th><th class="num">Heard</th><th>Where</th></tr></thead><tbody>';
+  a.forEach((n) => {
+    const tt = TYPE[n.type] || ["sens", "node"];
+    const p = n.apos || n.hpos, rel = relPos(p);
+    s += "<tr><td><b>" + esc(lbl(n, "(no name)")) + '</b> <span class="tag ' + tt[0] + '">' + tt[1] + "</span></td><td class=\"mono\">" + esc(n.k.slice(0, 6)) + "</td>" +
+      '<td class="num">' + (n.hops === 0 ? "direct" : esc(n.hops)) + '</td><td class="num">' + (+n.snr).toFixed(1) + '</td><td class="num">' + esc(n.rssi) + '</td><td class="num">' + (n.ms ? fmtAge(now() - n.ms) + " ago" : "?") + "</td><td>" +
+      (p ? esc(rel || (p[0].toFixed(4) + ", " + p[1].toFixed(4))) + (n.apos ? "" : ' <span class="muted small">(where I was)</span>') : '<span class="muted">unknown</span>') + "</td></tr>";
+  });
+  return s + "</tbody></table></div>";
+}
+function renderBanner() {
+  const b = $("banner");
+  let cls = "off", t = "", s = "";
+  if (S.mode === "off") { t = "Radio not connected"; s = "Plug the radio into the hub, then press Connect radio."; }
+  else if (!S.frame) { t = "Waiting for the radio..."; s = "Connected. The first reading arrives within a few seconds."; }
+  else {
+    const best = (S.frame.links || []).find((l) => l.best === 1);
+    if (best) {
+      cls = "good"; t = "REACHABLE";
+      s = "Best repeater: " + esc(best.name || nameFor(best.id) || best.id) + " &middot; score " + N(best.sc) + " &middot; SNR " + (+best.snr).toFixed(1) + " dB &middot; " + (S.frame.links || []).length + " repeater" + ((S.frame.links || []).length === 1 ? "" : "s") + " heard";
+    } else {
+      cls = "bad"; t = "NO REPEATER HEARD";
+      const lu = S.lastUsable;
+      s = lu ? "Last usable repeater: <b>" + esc(lu.name || lu.id) + "</b>, " + fmtAge(now() - lu.at) + " ago (SNR " + (+lu.snr).toFixed(1) + " dB)." : "No repeater has been heard yet this session.";
+      const cov = S.frame.trip && S.frame.trip.cov;
+      if (cov && cov.m != null && cov.lat) s += " Last place with coverage: <b>" + fmtDist(cov.m) + " " + compass(cov.brg) + "</b> of here.";
+      s += " Move higher or outdoors, check the antenna, and wait a few minutes for adverts.";
+    }
+  }
+  [b, $("homeBanner")].forEach((e) => { if (e) { e.className = "banner " + cls; e.innerHTML = '<div class="t">' + t + '</div><div class="s">' + s + "</div>"; } });
+}
+function renderStation() {
+  renderBanner();
+  const c = S.cairn, id = c && c.id;
+  const g = S.frame && S.frame.gps, tab = new Date();
+  let w = row("Tablet time", esc(tab.toLocaleString()));
+  if (c && c.now) { const off = Math.round(Date.now() / 1000 - c.now); w += row("Radio clock", esc(new Date(c.now * 1000).toLocaleTimeString()) + (Math.abs(off) > 30 ? ' <span class="pill-late">(' + N(off) + " s off)</span>" : ' <span class="pill-ok">in step</span>')); }
+  w += row("GPS", g ? (g.fix ? '<span class="pill-ok">fix</span>, ' + N(g.sats) + " satellites" : '<span class="pill-late">no fix</span>' + (g.sats != null ? ", " + N(g.sats) + " satellites" : "")) : '<span class="muted">not reported</span>');
+  if (g && g.fix) w += row("Position", '<span class="mono">' + (+g.lat).toFixed(5) + ", " + (+g.lon).toFixed(5) + "</span>");
+  $("whereBox").innerHTML = w;
+  const msgs = S.journal.filter((r) => r.r === "m").slice(-6).reverse();
+  const lm = msgs.length ? msgs.map((r) => "<div style=\"padding:4px 0;border-bottom:1px solid var(--line)\"><span class=\"muted\">" + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages in the journal yet.</span>';
+  $("latestMsgs").innerHTML = lm;
+  const f = S.frame;
+  $("radioBox").innerHTML = f ? row("Packets heard / sent", (f.diag ? N(f.diag.rx) + " / " + N(f.diag.tx) : "?")) + row("Last heard", f.diag ? N(f.diag.last_rx_s) + " s ago" : "?") + row("Average SNR", f.diag && f.diag.snr != null ? (+f.diag.snr).toFixed(1) + " dB" : "?") +
+    row("Messages sent / delivered", f.dl ? N(f.dl.sent) + " / " + N(f.dl.ok) : "?") + row("Firmware", esc(f.v || "")) : '<dd class="muted">No reading yet.</dd>';
+  $("journalBox").innerHTML = row("On this tablet", S.journal.length + " records") + row("On the radio", c ? N(c.kb) + " KB" : "?") + row("Station started", c && c.lines != null ? N(c.lines) + " lines this session" : "?") + row("Dropped", c && c.lost ? '<span class="pill-late">' + N(c.lost) + "</span>" : "0");
+}
+function renderHeard() {
+  const t = now(), rec = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000);
+  $("heardCounts").innerHTML = '<span class="chip"><b>' + rec(2).length + '</b> repeaters</span><span class="chip"><b>' + rec(1).length + '</b> companions</span><span class="chip"><b>' + rec(3).length + "</b> room servers</span>";
+  const top = rec(2).sort((a, b) => b.snr - a.snr).slice(0, 3);
+  $("topReps").innerHTML = top.length ? top.map((n) => "<div><b>" + esc(lbl(n)) + '</b> <span class="muted">SNR ' + (+n.snr).toFixed(1) + " &middot; " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago</span></div>").join("") : '<span class="muted">No repeater in the last 15 minutes.</span>';
+}
+function renderNearby() {
+  $("nbRep").innerHTML = nodeTable(nodeList(2)); $("nbRoom").innerHTML = nodeTable(nodeList(3)); $("nbComp").innerHTML = nodeTable(nodeList(1));
+}
+function effHelp(c) { return !!(c.helpMs && c.helpMs > c.okMs && (S.ack[c.id] || 0) < c.helpMs); }
+const mapsLink = (p) => '<a href="geo:' + N(p[0]) + "," + N(p[1]) + '">open in maps app</a>';
+function unitNode(u) { let best = null; S.nodes.forEach((n) => { if (n.k.toLowerCase().indexOf(u.k) === 0 && (!best || n.ms > best.ms)) best = n; }); return best; }
+function unitNote(t, bad) { const e = $("unitNote"); if (e) { e.textContent = t || ""; e.style.color = bad ? "#c4302b" : ""; } }
+function renderUnits() {
+  const box = $("unitList"); if (!box) return;
+  const mm = $("unitMiss"); if (mm && document.activeElement !== mm) mm.value = String(Math.max(1, +store.get("cairn-missmin") || 30));
+  { const b = $("unitBound"); if (b) b.textContent = (S.cairn && S.cairn.id) || "LC-????????"; }
+  $("unitCount").textContent = S.units.length ? "(" + S.units.length + " of " + S.unitMax + ")" : "";
+  const pick = $("unitPick");
+  if (pick && document.activeElement !== pick) {
+    const opts = [];
+    S.nodes.forEach((n) => { if (n.k.length >= 12 && !unitFor(n.k) && n.type >= 1 && n.type <= 3) opts.push(n); });
+    opts.sort((a, b) => b.ms - a.ms);
+    const html = '<option value="">Pick a radio that was heard...</option>' + opts.slice(0, 60).map((n) => '<option value="' + esc(n.k.toLowerCase().slice(0, 12)) + '">' + esc((n.name || "(no name)") + " - " + (TYPE[n.type] || ["", "node"])[1] + " - " + n.k.slice(0, 6)) + "</option>").join("");
+    if (pick.dataset.h !== html) { const v = pick.value; pick.innerHTML = html; pick.dataset.h = html; pick.value = v; }
+  }
+  if (box.contains(document.activeElement)) return;      // do not rebuild while a call sign is being typed
+  if (!S.units.length) { box.innerHTML = '<p class="muted">No units bound yet. Pick a heard radio below (or type its radio ID), give it a name and press Bind to this CAIRN. It gets the next free CRU ID.</p>'; return; }
+  const lim = Math.max(1, +store.get("cairn-missmin") || 30) * 60000, t = now(), h = here();
+  box.innerHTML = '<div style="overflow-x:auto"><table><tr><th>CRU ID</th><th>Name</th><th>Radio ID</th><th>Type</th><th>Last heard</th><th>Position</th><th></th></tr>' + S.units.map((u) => {
+    const n = unitNode(u), tt = n ? (TYPE[n.type] || ["", "node"]) : ["", "-"];
+    const miss = n && n.ms && t - n.ms > lim;
+    const heard = !n || !n.ms ? '<span class="muted">not heard yet</span>' : (miss ? '<span class="unit-miss">MISSING ' + esc(fmtAge(t - n.ms)) + "</span>" : '<span class="unit-ok">' + esc(fmtAge(t - n.ms)) + " ago</span>");
+    const p = n && (n.apos || n.hpos), pos = !n ? "" : n.apos ? esc(n.apos[0].toFixed(5) + ", " + n.apos[1].toFixed(5)) + (h ? "<br><span class=\"muted small\">" + esc(relPos(n.apos)) + "</span>" : "") : n.hpos ? '<span class="muted">no GPS; heard from ' + esc(n.hpos[0].toFixed(3) + ", " + n.hpos[1].toFixed(3)) + "</span>" : '<span class="muted">no position</span>';
+    return '<tr data-k="' + esc(u.k) + '"><td><b class="mono">' + esc(cruTxt(u)) + '</b><br><input class="cru" type="number" min="1" max="99" value="' + esc(u.n || "") + '" style="width:64px" aria-label="CRU number for ' + esc(u.c) + '"></td><td><input class="nm" value="' + esc(u.c) + '" maxlength="12" aria-label="Name for ' + esc(cruTxt(u)) + '"> <button data-act="save">Save</button></td><td class="mono small">' + esc(u.k) + "</td><td>" + esc(tt[1]) + "</td><td>" + heard + "</td><td>" + pos + '</td><td>' + (p ? '<button data-act="map" data-p="' + esc(p[0] + "," + p[1]) + '">Show on map</button> ' : "") + '<button data-act="del">Remove</button></td></tr>';
+  }).join("") + "</table></div>";
+}
+function wireUnits() {
+  const box = $("unitList"); if (!box || box.dataset.w) return; box.dataset.w = "1";
+  box.addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-act]"); if (!b) return; const row = b.closest("tr"), k = row && row.dataset.k, a = b.dataset.act;
+    if (a === "save") { const c = row.querySelector("input.nm").value.trim().toUpperCase(), cr = parseInt(row.querySelector("input.cru").value, 10), u = S.units.find((x) => x.k === k); if (!c) { unitNote("Type a name first.", true); return; } if (!u) return; if (c !== u.c) send("cairn unit name " + k + " " + c); if (cr >= 1 && cr <= 99 && cr !== u.n) send("cairn unit cru " + k + " " + cr); unitNote("Saving..."); setTimeout(() => send("cairn units"), 700); }
+    else if (a === "del") { const u = S.units.find((x) => x.k === k); if (u && confirm("Unbind " + u.c + " (" + cruTxt(u) + ") from this CAIRN? Its radio keeps working; it just stops being tracked as a unit.")) { send("cairn unit del " + k); setTimeout(() => send("cairn units"), 700); } }
+    else if (a === "map") { S.focus = b.dataset.p.split(",").map(Number); showTab("map"); }
+  });
+  $("unitAdd").addEventListener("click", () => {
+    const id = ($("unitId").value.trim() || $("unitPick").value || "").toLowerCase(), call = $("unitCall").value.trim().toUpperCase();
+    if (!/^[0-9a-f]{12,64}$/.test(id)) { unitNote("Pick a heard radio, or type its radio ID (12 or more characters 0-9 a-f).", true); return; }
+    if (!/^[A-Z0-9\/-]{1,12}$/.test(call) || call.indexOf("CRU-") === 0) { unitNote("A name is 1 to 12 letters, digits, - or / (it cannot start with CRU-).", true); return; }
+    const cr = parseInt($("unitCru").value, 10);
+    send("cairn unit add " + id + " " + call + (cr >= 1 && cr <= 99 ? " " + cr : "")); unitNote("Binding " + call + "..."); $("unitId").value = ""; $("unitCall").value = ""; $("unitCru").value = ""; $("unitPick").value = ""; setTimeout(() => send("cairn units"), 700);
+  });
+  $("unitPick").addEventListener("change", () => { if ($("unitPick").value) $("unitId").value = ""; });
+  $("unitMiss").addEventListener("change", () => { const v = Math.max(1, Math.min(1440, parseInt($("unitMiss").value, 10) || 30)); store.set("cairn-missmin", String(v)); $("unitMiss").value = String(v); render(); });
+  const sr = $("snapRoads"); if (sr) { sr.checked = SNAP.on; sr.addEventListener("change", () => { SNAP.on = sr.checked; store.set("cairn-snap", SNAP.on ? "1" : "0"); SNAP.failAt = 0; if (SNAP.on) { SNAP.done = []; SNAP.upto = 0; } SNAP.dirty = true; if (S.tab === "map") renderMap(); }); }
+}
+function renderRoster() {
+  const late = (+$("lateMin").value || 30) * 60000, t = now(), own = S.cairn && S.cairn.id;
+  const a = Array.from(S.checkins.values()).sort((x, y) => (effHelp(y) - effHelp(x)) || (y.ms - x.ms));
+  let overdue = 0;
+  let s = '<table><thead><tr><th>Station</th><th>Name</th><th>Last heard</th><th>Status</th><th>Position</th></tr></thead><tbody>';
+  a.forEach((c) => {
+    const isLate = t - c.ms > late, help = effHelp(c), me = own === c.id;
+    if (isLate && !help && !me) overdue++;
+    const p = c.lat != null ? [c.lat, c.lon] : null;
+    let st = "";
+    if (help) st += '<span class="pill-help">NEEDS HELP</span> <span class="small muted">' + esc(fmtAge(t - c.helpMs)) + ' ago</span> <button data-ack="' + esc(c.id) + '">Got it</button>';
+    else if (c.helpMs && c.helpMs > c.okMs) st += '<span class="pill-late">help call handled</span>';
+    else st += '<span class="pill-ok">OK</span>';
+    if (c.status && t - c.status.ms < 12 * 3600000) st += '<div><b>' + esc(nice(c.status.label)) + '</b> <span class="small muted">' + esc(fmtAge(t - c.status.ms)) + " ago</span></div>";
+    if (c.lowbat && t - c.lowbat.ms < 3 * 3600000) st += '<div class="pill-late small">battery low (' + N(c.lowbat.pct) + "%) " + esc(fmtAge(t - c.lowbat.ms)) + " ago</div>";
+    s += '<tr><td class="mono"><b>' + esc(c.id) + "</b>" + (me ? ' <span class="tag comp">this station</span>' : "") + "</td><td>" + esc(c.from || c.chan || "") + "</td><td>" + esc(fmtAge(t - c.ms)) + " ago" +
+      (isLate && !me ? ' <span class="pill-late">overdue</span>' : "") + "</td><td>" + st + "</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(me ? "" : relPos(p)) + " " + mapsLink(p) : '<span class="muted">no GPS fix</span>') + "</td></tr>";
+  });
+  if (!a.length) s += '<tr><td colspan="5" class="muted">Nobody has reported yet. When another CAIRN station sends I\'M OK, a status or a help call, it appears here.</td></tr>';
+  $("rosterBox").innerHTML = s + "</tbody></table>";
+  $("rosterBox").querySelectorAll("[data-ack]").forEach((b) => b.addEventListener("click", () => { const c = S.checkins.get(b.dataset.ack); if (c) { S.ack[c.id] = c.helpMs; jset("cairn-ack", S.ack); render(); } }));
+  const bd = $("lateBadge"); bd.textContent = overdue; bd.hidden = overdue === 0;
+  renderNeeds();
+}
+function renderNeeds() {
+  const t = now(), cnt = {};
+  S.checkins.forEach((c) => { if (c.status && t - c.status.ms < 12 * 3600000) cnt[c.status.label] = (cnt[c.status.label] || 0) + 1; });
+  let h = Object.keys(cnt).length ? '<div class="row">' + Object.keys(cnt).sort().map((k) => '<span class="chip"><b>' + cnt[k] + "</b> " + esc(nice(k)) + "</span>").join("") + "</div>" : '<p class="muted" style="margin:0">No statuses sent yet.</p>';
+  const mk = S.marks.slice().sort((a, b) => b.ms - a.ms).slice(0, 30);
+  h += '<h3 style="margin:14px 0 6px;font-size:17px">Marked places</h3>';
+  h += mk.length ? '<table><thead><tr><th>What</th><th>Marked by</th><th>When</th><th>Where</th></tr></thead><tbody>' + mk.map((m) => { const p = m.lat != null ? [m.lat, m.lon] : null; return "<tr><td><b>" + esc(nice(m.label)) + "</b></td><td>" + esc(m.from || m.id) + "</td><td>" + esc(fmtAge(t - m.ms)) + " ago</td><td>" + (p ? '<span class="mono">' + p[0].toFixed(5) + ", " + p[1].toFixed(5) + "</span> " + esc(relPos(p)) + " " + mapsLink(p) + ' <button data-showmap="' + p[0] + "," + p[1] + '">Show on map</button>' : '<span class="muted">no position</span>') + "</td></tr>"; }).join("") + "</tbody></table>" : '<p class="muted" style="margin:0">Nothing marked yet. Use <b>Mark this place</b> on the Home screen.</p>';
+  $("needsBox").innerHTML = h;
+  $("needsBox").querySelectorAll("[data-showmap]").forEach((b) => b.addEventListener("click", () => { const q = b.dataset.showmap.split(",").map(Number); S.focus = q; showTab("map"); }));
+}
+function logRows() {
+  const q = S.search.trim().toLowerCase();
+  return S.journal.slice().sort((x, y) => (x._ms || 0) - (y._ms || 0)).filter((r) => {
+    if (S.kind === "m" && r.r !== "m") return false;
+    if (S.kind === "a" && r.r !== "a") return false;
+    if (S.kind === "b" && r.r !== "b") return false;
+    if (S.kind === "c" && !(r.r === "o" || (r.r === "m" && CHECKIN_RE.test(r.x || "")))) return false;
+    return !q || r._l.toLowerCase().indexOf(q) >= 0;
+  });
+}
+function describe(r) {
+  if (r.r === "m") return ["Message" + (r.k === "r" ? " (room)" : r.k === "d" ? " (direct)" : r.k === "x" ? " (reply)" : r.k === "s" ? " (sent)" : r.k === "p" ? " (direct, sent)" : ""), r.f || r.c || "", (r.c && r.f ? "[" + r.c + "] " : "") + (r.x || "")];
+  if (r.r === "a") { const tt = TYPE[r.ty] || ["", "node"]; return ["Advert: " + tt[1], r.n || r.k, "hops " + r.h + ", SNR " + r.s + ", RSSI " + r.rs + (r.la != null ? ", at " + r.la + "," + r.lo : "")]; }
+  if (r.r === "o") return [/ Reporting at:/.test(r.x || "") ? "Check-in sent" : "Sent", r.id, r.x];
+  if (r.r === "b") return ["Station started", r.id, "firmware " + r.v];
+  return ["?", "", ""];
+}
+function renderLog() {
+  const rows = logRows(), show = rows.slice(-300).reverse();
+  const tb = document.querySelector("#logTable tbody");
+  tb.innerHTML = show.map((r) => { const d = describe(r); return "<tr><td>" + esc(fmtTime(r._ms)) + "</td><td>" + esc(d[0]) + "</td><td>" + esc(d[1]) + '</td><td class="txt">' + esc(d[2]) + "</td></tr>"; }).join("") || '<tr><td colspan="4" class="muted">Nothing here yet.</td></tr>';
+  $("logCount").textContent = rows.length + " records" + (rows.length !== S.journal.length ? " shown of " + S.journal.length : "");
+  $("logMore").textContent = rows.length > 300 ? "Showing the newest 300. Download the CSV for everything." : "";
+}
+function renderPower() {
+  const f = S.frame, b = f && f.bat;
+  if (!b || !b.mv) $("radioBatt").innerHTML = '<p class="muted">The radio reports no battery. If it runs from USB power only, that is normal: it cannot see the power bank. Fit a small LiPo to the radio\'s battery connector if you want a radio battery reading.</p>';
+  else {
+    const pct = Math.round(b.pct); $("radioBatt").innerHTML = '<div class="big">' + pct + '%</div><div class="muted">' + (b.mv / 1000).toFixed(2) + " V" + (b.chg ? " &middot; charging" : "") + (b.hrs != null ? " &middot; about " + (+b.hrs).toFixed(1) + " h left" : "") + '</div><div class="bar2 ' + (pct < 20 ? "low" : pct < 40 ? "warn" : "") + '" style="margin-top:8px"><div style="width:' + pct + '%"></div></div>';
+  }
+  const t = now();
+  $("supplies").innerHTML = S.supplies.map((s, i) => {
+    const total = s.hours * 3600000, el = s.start ? t - s.start : 0, left = s.start ? Math.max(0, total - el) : 0, pct = s.start ? Math.round(100 * left / total) : 0;
+    return '<div class="card" style="margin-bottom:10px;background:var(--panel2)"><div class="row"><div class="grow"><b>' + esc(s.name) + '</b><div class="small muted">Expected to last <input type="number" min="1" max="999" value="' + esc(s.hours) + '" data-sup-h="' + i + '" style="width:84px;display:inline-block;min-height:38px"> hours</div></div>' +
+      (s.start ? '<div><div class="big">' + fmtAge(left) + '</div><div class="small muted">left of ' + s.hours + " h (started " + esc(fmtTime(s.start)) + ")</div></div>" : '<div class="muted">Timer not started</div>') +
+      '<button data-sup-go="' + i + '" class="pri">Fully charged / started now</button><button data-sup-del="' + i + '">Remove</button></div>' +
+      (s.start ? '<div class="bar2 ' + (pct < 15 ? "low" : pct < 35 ? "warn" : "") + '" style="margin-top:8px"><div style="width:' + pct + '%"></div></div>' : "") + "</div>";
+  }).join("");
+  $("supplies").querySelectorAll("[data-sup-go]").forEach((b) => b.addEventListener("click", () => { S.supplies[+b.dataset.supGo].start = now(); jset("cairn-supplies", S.supplies); renderPower(); }));
+  $("supplies").querySelectorAll("[data-sup-del]").forEach((b) => b.addEventListener("click", () => { S.supplies.splice(+b.dataset.supDel, 1); jset("cairn-supplies", S.supplies); renderPower(); }));
+  $("supplies").querySelectorAll("[data-sup-h]").forEach((i) => i.addEventListener("change", () => { S.supplies[+i.dataset.supH].hours = Math.max(1, +i.value || 1); jset("cairn-supplies", S.supplies); renderPower(); }));
+  applyKb();
+}
+$("btnAddSupply").addEventListener("click", () => { S.supplies.push({ name: "Supply " + (S.supplies.length + 1), hours: 24, start: 0 }); jset("cairn-supplies", S.supplies); renderPower(); });
+if (navigator.getBattery) navigator.getBattery().then((bt) => {
+  const draw = () => { S.tabBat = { level: bt.level, charging: bt.charging }; $("tabBatt").innerHTML = '<div class="big">' + Math.round(bt.level * 100) + '%</div><div class="muted">' + (bt.charging ? "charging" : "on battery") + (!bt.charging && isFinite(bt.dischargingTime) ? " &middot; about " + fmtAge(bt.dischargingTime * 1000) + " left" : "") + "</div>"; };
+  draw(); bt.addEventListener("levelchange", draw); bt.addEventListener("chargingchange", draw);
+}).catch(() => { $("tabBatt").textContent = "This browser does not report the tablet's battery. Look at the tablet's own battery icon."; });
+else $("tabBatt").textContent = "This browser does not report the tablet's battery. Look at the tablet's own battery icon.";
+
+let lastRender = 0;
+function render() {
+  lastRender = now();
+  if (S.mode === "serial") setStatus(S.frame ? "live" : "wait", S.frame ? "Live" : "Connected, waiting for data");
+  const id = S.cairn && S.cairn.id;
+  $("sid").textContent = id || "LC-????????"; $("sid").classList.toggle("none", !id);
+  if (S.tab === "home") renderHome();
+  else if (S.tab === "station") renderStation();
+  else if (S.tab === "chat") renderChat();
+  else if (S.tab === "nearby") renderNearby();
+  else if (S.tab === "units") { wireUnits(); renderUnits(); }
+  else if (S.tab === "checkins") renderRoster();
+  else if (S.tab === "log") renderLog();
+  else if (S.tab === "files" && STN) stRenderFiles();
+  else if (S.tab === "online" && STN) stRenderOnline();
+  else if (S.tab === "map") renderMap();
+  else if (S.tab === "power") { renderPowerCtl(); if (!document.activeElement || document.activeElement.tagName !== "INPUT") renderPower(); }
+  if (S.tab !== "checkins") renderRosterBadge();
+  renderChatBadge();
+  renderAlerts();
+  if (S.tab === "station") applyKb();
+}
+function renderRosterBadge() {
+  const late = (+$("lateMin").value || 30) * 60000, t = now(); let n = 0;
+  const own = S.cairn && S.cairn.id;
+  S.checkins.forEach((c) => { if (t - c.ms > late && !effHelp(c) && c.id !== own) n++; });
+  const bd = $("lateBadge"); bd.textContent = n; bd.hidden = n === 0;
+}
+setInterval(() => { if (document.hidden) return; if (S.tab === "log" || (document.activeElement && document.activeElement.tagName === "INPUT" && S.tab !== "station" && S.tab !== "chat" && S.tab !== "home" && S.tab !== "power")) return; render(); }, 1000);
+
+/* ---------------------------------------------------------------- chat: send and read messages */
+const MAXMSG = 140;
+const byteLen = (s) => new TextEncoder().encode(s).length;
+function chatThreads() {
+  const t = [], seen = new Set();
+  const chans = S.chans.length ? S.chans : [{ i: 0, n: "Public" }];
+  chans.forEach((c) => { t.push({ key: "c:" + c.n, kind: "c", name: c.n, idx: c.i }); seen.add("c:" + c.n); });
+  const dm = new Map();
+  S.journal.forEach((r) => {
+    if (r.r === "m" && (r.k === "d" || r.k === "x") && r.f) dm.set(r.f, Math.max(dm.get(r.f) || 0, r._ms || 0));
+    else if (r.r === "m" && r.k === "p" && r.c) dm.set(r.c, Math.max(dm.get(r.c) || 0, r._ms || 0));
+  });
+  S.extra.forEach((n) => { if (!dm.has(n)) dm.set(n, 0); });
+  Array.from(dm.entries()).sort((a, b) => b[1] - a[1]).forEach(([n]) => { t.push({ key: "d:" + n, kind: "d", name: n }); });
+  return t;
+}
+function threadRecs(th) {
+  const idxName = (i) => { const c = S.chans.find((x) => x.i === i); return c ? c.n : (i === 0 ? "Public" : ""); };
+  return S.journal.filter((r) => {
+    if (th.kind === "c") return (r.r === "m" && (r.k === "c" || r.k === "s" || r.k === "r") && r.c === th.name) || (r.r === "o" && idxName(r.ch) === th.name);
+    return r.r === "m" && (((r.k === "d" || r.k === "x") && r.f === th.name) || (r.k === "p" && r.c === th.name));
+  }).sort((a, b) => (a._ms || 0) - (b._ms || 0));
+}
+function unreadFor(th) {
+  return threadRecs(th).filter((r) => r.r === "m" && r.k !== "s" && r.k !== "p" && (r._ms || 0) > S.chatSeen).length;
+}
+function renderChatBadge() {
+  let n = 0; S.journal.forEach((r) => { if (r.r === "m" && (r.k === "c" || r.k === "d") && (r._ms || 0) > S.chatSeen) n++; });
+  const b = $("chatBadge"); if (!b) return; b.textContent = n; b.hidden = n === 0 || S.tab === "chat";
+}
+function currentThread() {
+  const ts = chatThreads();
+  return ts.find((t) => t.key === S.thread) || ts[0];
+}
+function contactKey(name) {
+  for (const n of S.nodes.values()) if (n.name === name && (n.type === 1 || n.type === 3)) return n.k;
+  return null;
+}
+function renderChat() {
+  const ts = chatThreads(), th = currentThread();
+  const tl = $("threadList"); tl.textContent = "";
+  ts.forEach((t) => {
+    const b = document.createElement("button"); b.className = "thr"; b.setAttribute("aria-pressed", th && t.key === th.key ? "true" : "false");
+    const u = t.key === (th && th.key) ? 0 : unreadFor(t);
+    b.innerHTML = "<span>" + (t.kind === "c" ? "# " : "&#9993; ") + esc(t.name) + "</span>" + (u ? '<span class="n">' + u + "</span>" : "");
+    b.addEventListener("click", () => { S.thread = t.key; store.set("cairn-thread", t.key); S.chatSeen = now(); renderChat(); $("chatText").focus(); });
+    tl.appendChild(b);
+  });
+  const pick = $("dmPick"), keep = pick.value;
+  const people = Array.from(S.nodes.values()).filter((n) => (n.type === 1 || n.type === 3) && n.name).sort((a, b) => a.name.localeCompare(b.name));
+  const sig = people.map((n) => n.name).join("|");
+  if (pick.dataset.sig !== sig) {
+    pick.dataset.sig = sig; pick.innerHTML = '<option value="">Choose a person or room...</option>' + people.map((n) => "<option>" + esc(n.name) + "</option>").join("");
+    pick.value = keep;
+  }
+  if (!th) return;
+  $("threadTitle").textContent = (th.kind === "c" ? "# " : "") + th.name + (th.kind === "d" ? " (direct)" : "");
+  const box = $("chatMsgs"), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  const recs = threadRecs(th).slice(-200);
+  box.innerHTML = recs.map((r) => {
+    const mine = r.r === "o" || r.k === "s" || r.k === "p";
+    const who = mine ? "You" : (r.f || "?");
+    return '<div class="msg' + (mine ? " me" : "") + '"><div class="who">' + esc(who) + " &middot; " + esc(fmtTime(r._ms)) + '</div><div class="txt">' + esc(r.x) + "</div></div>";
+  }).join("") || '<p class="muted">No messages here yet.</p>';
+  if (atEnd) box.scrollTop = box.scrollHeight;
+  updateSendState(th);
+  renderChanMgr();
+  applyKb();
+}
+function updateSendState(th) {
+  th = th || currentThread();
+  const t = $("chatText").value, n = byteLen(t);
+  $("chatCount").textContent = n; $("chatCount").style.color = n > MAXMSG ? "var(--bad)" : "";
+  let note = "", can = S.mode !== "off" && th && t.trim().length > 0 && n <= MAXMSG;
+  if (S.mode === "off") note = "Connect the radio to send.";
+  else if (th && th.kind === "c" && !S.chans.length && S.mode === "serial") { note = "Waiting for the channel list from the radio..."; }
+  else if (th && th.kind === "d" && !contactKey(th.name)) { note = "This person's key has not been heard yet, so a direct message cannot be sent. Wait for their advert."; can = false; }
+  else if (th && th.kind === "d") note = "Direct messages only reach people saved in the radio's contact list.";
+  else note = "Sent over the mesh to everyone on this channel.";
+  $("chatNote").textContent = note; $("btnSend").disabled = !can;
+}
+function sendChat() {
+  const th = currentThread(), t = $("chatText").value.replace(/[\r\n]+/g, " ").trim();
+  if (!th || !t || byteLen(t) > MAXMSG) return;
+  if (th.kind === "c") {
+    const c = S.chans.find((x) => x.n === th.name), idx = c ? c.i : (S.mode === "demo" || !S.chans.length ? (th.idx != null ? th.idx : 0) : null);
+    if (idx == null) { toast("That channel is not on the radio."); return; }
+    send("cairn say " + idx + " " + t);
+  } else {
+    const k = contactKey(th.name); if (!k) { toast("No key for " + th.name + " yet."); return; }
+    send("cairn dm " + k + " " + t);
+  }
+  $("chatText").value = ""; updateSendState(th);
+}
+$("btnSend").addEventListener("click", sendChat);
+$("chatText").addEventListener("input", () => updateSendState());
+$("chatText").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendChat(); } });
+$("dmPick").addEventListener("change", (e) => { const n = e.target.value; if (!n) return; S.extra.add(n); S.thread = "d:" + n; store.set("cairn-thread", S.thread); e.target.value = ""; renderChat(); $("chatText").focus(); });
+
+/* ---------------------------------------------------------------- controls */
+$("btnConnect").addEventListener("click", connect);
+
+$("btnSetClock").addEventListener("click", () => { send("cairn time " + Math.round(Date.now() / 1000)); });
+document.querySelectorAll("[data-win]").forEach((b) => b.addEventListener("click", () => { S.win = +b.dataset.win; document.querySelectorAll("[data-win]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
+document.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => { S.sort = b.dataset.sort; document.querySelectorAll("[data-sort]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
+document.querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => { S.kind = b.dataset.kind; document.querySelectorAll("[data-kind]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false")); render(); }));
+$("logSearch").addEventListener("input", (e) => { S.search = e.target.value; renderLog(); });
+$("lateMin").addEventListener("change", () => { store.set("cairn-late", $("lateMin").value); render(); });
+if (store.get("cairn-late")) $("lateMin").value = store.get("cairn-late");
+$("btnPrint").addEventListener("click", () => window.print());
+$("btnReload").addEventListener("click", () => { S.dumping = true; send("cairn dump"); toast("Asking the radio for its journal..."); });
+$("btnErase").addEventListener("click", () => { if (confirm("Erase the journal stored ON THE RADIO? The copy kept on this tablet is not touched.")) { send("cairn clear yes"); } });
+
+function stamp() { return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-"); }
+function saveFile(name, mime, text) {
+  if (STN) { stSave(name, text); return; }
+  const a = document.createElement("a"), u = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+const csvCell = (v) => { v = v == null ? "" : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+function downloadCsv() {
+  const head = ["time_local", "device_epoch", "uptime_s", "record", "kind", "from_or_name", "channel", "node_type", "node_key", "hops", "snr", "rssi", "lat_announced", "lon_announced", "lat_heard_from", "lon_heard_from", "text"];
+  const lines = [head.join(",")];
+  S.journal.forEach((r) => {
+    const tt = r.r === "a" ? (TYPE[r.ty] ? TYPE[r.ty][1] : r.ty) : "";
+    lines.push([r._ms ? new Date(r._ms).toISOString() : "", r.t, r.u, { m: "message", a: "advert", o: "checkin_sent", b: "boot" }[r.r] || r.r, r.k && r.r === "m" ? r.k : "", r.f || r.n || r.id || "", r.c || "", tt, r.r === "a" ? r.k : "", r.h, r.s, r.rs, r.la, r.lo, r.hla, r.hlo, r.x || ""].map(csvCell).join(","));
+  });
+  saveFile("cairn-journal-" + stamp() + ".csv", "text/csv", lines.join("\r\n") + "\r\n");
+}
+$("btnCsv").addEventListener("click", downloadCsv);
+$("btnJsonl").addEventListener("click", () => saveFile("cairn-journal-" + stamp() + ".jsonl", "application/x-ndjson", S.journal.map((r) => r._l).join("\n") + "\n"));
+
+/* ---------------------------------------------------------------- map and offline maps */
+const REG_API = "https://api.github.com/repos/propertymonitor-web/lodestar_nova_alpha/releases/tags/maps";
+const fmtMB = (b) => (b >= 1e9 ? (b / 1e9).toFixed(1) + " GB" : Math.max(1, Math.round(b / 1e6)) + " MB");
+function offNoteSet(t) { $("offNote").textContent = t || ""; }
+async function readHeader(src) {
+  const p = new pmtiles.PMTiles(src && src.url ? new pmtiles.FetchSource(src.url) : new pmtiles.FileSource(src)), h = await p.getHeader();
+  if (h.tileType !== 1) throw new Error("this is not a vector map file");
+  return { p, h };
+}
+async function loadStoredMaps() {
+  try { (await DB.run("maps", "readonly", (st) => st.getAll())).forEach((r) => S.off.set(r.name, r)); }
+  catch (e) { offNoteSet("This browser will not keep map files, so load the file each visit."); }
+  if (STN) await stLoadMaps();
+  renderOffList(); fillTileSel();
+}
+function fillTileSel() {
+  const sel = $("tileSel"), cur = sel.value;
+  Array.from(sel.querySelectorAll("option[data-off]")).forEach((o) => o.remove());
+  S.off.forEach((r) => { const o = document.createElement("option"); o.value = "off:" + r.name; o.dataset.off = "1"; o.textContent = "Offline: " + r.title; sel.appendChild(o); });
+  if (Array.from(sel.options).some((o) => o.value === cur)) sel.value = cur;
+}
+function renderOffList() {
+  const ul = $("offList"); ul.textContent = "";
+  S.off.forEach((r) => {
+    const li = document.createElement("li"), using = S.offUse === r.name;
+    li.innerHTML = "<b>" + esc(r.title) + '</b> <span class="muted">' + esc(fmtMB(r.size)) + ", detail to zoom " + esc(r.maxZoom) + "</span> ";
+    const use = document.createElement("button"); use.textContent = using ? "In use" : "Use this map"; use.disabled = using;
+    use.addEventListener("click", () => { $("tileSel").value = "off:" + r.name; $("tileSel").dispatchEvent(new Event("change")); });
+    const del = document.createElement("button"); del.textContent = "Remove";
+    del.addEventListener("click", async () => {
+      if (!confirm('Remove the offline map "' + r.title + '" from this browser? You can load the file again later.')) return;
+      if (r.native) { try { CairnBridge.mapDelete(r.name + ".pmtiles"); } catch (e) {} }
+      else { try { await DB.run("maps", "readwrite", (st) => st.delete(r.name)); } catch (e) {} }
+      S.off.delete(r.name); if (S.offUse === r.name && S.useProv) S.useProv("carto", true); renderOffList(); fillTileSel();
+    });
+    li.appendChild(use); li.appendChild(del); ul.appendChild(li);
+  });
+}
+async function addMapFile(file) {
+  if (!/\.pmtiles$/i.test(file.name)) { offNoteSet(file.name + " is not a .pmtiles map file."); return; }
+  offNoteSet("Reading " + file.name + "...");
+  let info; try { info = await readHeader(file); } catch (e) { offNoteSet(file.name + ": " + e.message + "."); return; }
+  const name = file.name.replace(/\.pmtiles$/i, "");
+  const rec = { name, title: name.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), file, size: file.size, added: Date.now(), bounds: [info.h.minLat, info.h.minLon, info.h.maxLat, info.h.maxLon], minZoom: info.h.minZoom, maxZoom: info.h.maxZoom };
+  try { await DB.run("maps", "readwrite", (st) => st.put(rec)); offNoteSet("Saved " + rec.title + " in this browser."); }
+  catch (e) { offNoteSet("Loaded " + rec.title + " for this visit only: " + (e && e.message ? e.message : "the browser would not store it") + "."); }
+  S.off.set(name, rec); renderOffList(); fillTileSel();
+  if (S.map) { $("tileSel").value = "off:" + name; $("tileSel").dispatchEvent(new Event("change")); }
+}
+async function useOffline(name) {
+  const r = S.off.get(name); if (!r || !S.map) return false;
+  let info; try { info = await readHeader(r.url ? r : r.file); } catch (e) { offNoteSet("Could not open " + r.title + ": " + e.message); return false; }
+  if (S.offLayer) { S.map.removeLayer(S.offLayer); S.offLayer = null; }
+  if (S.tileLayerNow) { S.map.removeLayer(S.tileLayerNow); S.tileLayerNow = null; }
+  S.offLayer = protomapsL.leafletLayer({ url: info.p, flavor: "light", maxDataZoom: info.h.maxZoom, lang: "en",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, <a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a>' }).addTo(S.map);
+  S.offLayer.bringToBack(); S.offUse = name; S.offBounds = L.latLngBounds([r.bounds[0], r.bounds[1]], [r.bounds[2], r.bounds[3]]);
+  $("mapNote").hidden = true; renderOffList(); checkCoverage();
+  return true;
+}
+function checkCoverage() {
+  if (!S.offUse || !S.offBounds) return;
+  const h = here(), n = $("mapNote");
+  if (h && !S.offBounds.contains(h)) { n.hidden = false; n.textContent = "You are outside the area of the offline map in use, so the map is blank here."; }
+  else if (!n.hidden && n.textContent.indexOf("outside the area") === 0) n.hidden = true;
+}
+async function loadRegionList() {
+  const sel = $("regSel");
+  try {
+    const r = await fetch(REG_API, { headers: { Accept: "application/vnd.github+json" } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const maps = (j.assets || []).filter((a) => /\.pmtiles$/i.test(a.name)).sort((a, b) => (a.label || a.name).localeCompare(b.label || b.name));
+    sel.textContent = "";
+    if (!maps.length) { sel.innerHTML = '<option value="">No regions published yet</option>'; return; }
+    const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choose a region..."; sel.appendChild(o0);
+    maps.forEach((a) => { const o = document.createElement("option"); o.value = a.browser_download_url; o.textContent = (a.label || a.name.replace(/\.pmtiles$/i, "")) + " (" + fmtMB(a.size) + ")"; sel.appendChild(o); });
+  } catch (e) {
+    sel.innerHTML = '<option value="">List not available</option>';
+    $("regNote").textContent = "The region list needs an internet connection. Maps you already loaded are listed below and work offline.";
+  }
+}
+$("regSel").addEventListener("change", (e) => { const u = e.target.value, a = $("regDl"); a.href = u || "#"; $("regDlBtn").disabled = !u; a.setAttribute("aria-disabled", u ? "false" : "true"); $("regNote").textContent = u ? "Press Download, then choose the downloaded file with Load a map file." : ""; });
+$("btnLoadMap").addEventListener("click", () => $("mapFile").click());
+$("mapFile").addEventListener("change", async (e) => { const files = Array.from(e.target.files || []); for (const f of files) await addMapFile(f); e.target.value = ""; });
+
+const mk = (cls) => L.divIcon({ className: "", html: '<div class="mk ' + cls + '"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
+function initMap() {
+  if (!window.L || S.map) { if (S.map) setTimeout(() => S.map.invalidateSize(), 100); return; }
+  S.map = L.map("map", { zoomControl: true, worldCopyJump: true }).setView([39.5, -98.35], 4);
+  const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  const PROV = { carto: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", opt: { subdomains: "abcd", maxZoom: 19, attribution: OSM_ATTR + ' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>' } } };
+  let layer = null, okT = 0, badT = 0;
+  const leaveOffline = () => { if (S.offLayer) { S.map.removeLayer(S.offLayer); S.offLayer = null; S.offUse = null; S.offBounds = null; renderOffList(); } };
+  const useProv = (key, remember) => {
+    if (key.indexOf("off:") === 0) {
+      if (remember) store.set("cairn-tiles", key);
+      if (layer) { S.map.removeLayer(layer); layer = null; }
+      $("tileSel").value = key; useOffline(key.slice(4)).then((ok) => { if (!ok) useProv("carto", false); });
+      return;
+    }
+    leaveOffline(); if (remember) store.set("cairn-tiles", key);
+    if (layer) S.map.removeLayer(layer);
+    okT = 0; badT = 0; $("mapNote").hidden = true; $("tileSel").value = key;
+    S.tileSpec = PROV.carto; layer = L.tileLayer(PROV.carto.url, PROV.carto.opt).addTo(S.map); layer.bringToBack();
+    layer.on("tileload", () => { okT++; $("mapNote").hidden = true; });
+    layer.on("tileerror", () => {
+      badT++; if (badT < 4 || okT > 0) return;
+      const offName = S.off.size ? Array.from(S.off.keys())[0] : null;
+      if (offName) { useProv("off:" + offName, false); const n = $("mapNote"); n.hidden = false; n.textContent = 'No internet, so the offline map "' + S.off.get(offName).title + '" is in use.'; return; }
+      const n = $("mapNote"); n.hidden = false; n.textContent = "The street map needs internet. Load an offline map (below) before you go. Your position, nodes and check-ins are still drawn.";
+    });
+  };
+  $("tileSel").addEventListener("change", (e) => useProv(e.target.value, true));
+  S.useProv = useProv;
+  loadStoredMaps().then(() => {
+    let prov = store.get("cairn-tiles") || "carto";
+    if (prov.indexOf("off:") === 0 && S.off.has(prov.slice(4))) useProv(prov, false);
+    else if (navigator.onLine === false && S.off.size) useProv("off:" + Array.from(S.off.keys())[0], false);
+    else useProv("carto", false);
+  });
+  S.gNodes = L.layerGroup().addTo(S.map); S.gChk = L.layerGroup().addTo(S.map); S.gTrail = L.layerGroup().addTo(S.map);
+  S.routeCase = L.polyline([], { color: "#ffffff", weight: 9, opacity: 0.85, lineJoin: "round", lineCap: "round", interactive: false }).addTo(S.map);
+  S.routeLine = L.polyline([], { color: "#6250d6", weight: 5, opacity: 0.95, lineJoin: "round", lineCap: "round", interactive: false }).addTo(S.map);
+  S.map.on("zoomend", routeWidth); routeWidth();
+  S.you = L.marker([0, 0], { icon: mk("me"), keyboard: false, title: "This station" });
+  S.cov = L.marker([0, 0], { icon: L.divIcon({ className: "covDia", iconSize: [14, 14] }), keyboard: false, title: "Last place with a usable repeater" });
+  S.map.on("dragstart", () => { S.follow = false; $("btnFollow").setAttribute("aria-pressed", "false"); });
+  S.follow = true; S.fitted = false;
+  setTimeout(() => S.map.invalidateSize(), 200);
+}
+function renderMap() {
+  wireUnits();
+  if (!S.map) { initMap(); if (!S.map) return; }
+  S.map.invalidateSize();
+  S.gNodes.clearLayers(); S.gChk.clearLayers(); S.gTrail.clearLayers();
+  if (S.route.length !== S._routeShown || SNAP.dirty) { const segs = routeSegments(); S.routeLine.setLatLngs(segs); S.routeCase.setLatLngs(segs); S._routeShown = S.route.length; SNAP.dirty = false; if (SNAP.on) snapMore(); }
+  S.trails.forEach((t, k) => { if (t.length > 1 && S.units.some((u) => u.k === k)) S.gTrail.addLayer(L.polyline(t.map((p) => [p[0], p[1]]), { color: unitCol(k), weight: 4, opacity: 0.9, dashArray: "2 6", lineCap: "round", interactive: false })); });
+  routeWidth();
+  const pts = [];
+  S.nodes.forEach((n) => {
+    const p = n.apos || (n.hpos); if (!p) return;
+    const tt = TYPE[n.type] || ["rep", "node"];
+    const mkr = L.marker(p, { icon: mk(tt[0]), title: lbl(n) }); if (unitFor(n.k)) mkr.bindTooltip(esc(lbl(n)), { permanent: true, direction: "top", offset: [0, -14] });
+    mkr.bindPopup("<b>" + esc(lbl(n)) + "</b>" + (unitFor(n.k) ? " <span class=\"muted\">" + esc(cruTxt(unitFor(n.k))) + (n.name ? ", " + esc(n.name) : "") + "</span>" : "") + "<br>" + esc(tt[1]) + "<br>SNR " + (+n.snr).toFixed(1) + ", " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + "<br>" + (n.ms ? fmtAge(now() - n.ms) + " ago" : "") + (n.apos ? "" : "<br><i>(position where I heard it)</i>")).addTo(S.gNodes);
+    pts.push(p);
+  });
+  S.checkins.forEach((c) => {
+    if (c.lat == null) return; const hp = effHelp(c);
+    L.marker([c.lat, c.lon], { icon: mk(hp ? "hlp" : "chk"), title: c.id, zIndexOffset: hp ? 1000 : 0 }).bindPopup("<b>" + esc(c.id) + "</b>" + (c.from ? " " + esc(c.from) : "") + (hp ? '<br><b style="color:#c4302b">NEEDS HELP</b>' : "") + (c.status ? "<br>" + esc(nice(c.status.label)) : "") + "<br>" + fmtAge(now() - c.ms) + " ago").addTo(S.gChk); pts.push([c.lat, c.lon]);
+  });
+  S.marks.forEach((m) => { if (m.lat == null) return; L.marker([m.lat, m.lon], { icon: mk("mkr"), title: m.label }).bindPopup("<b>" + esc(nice(m.label)) + "</b><br>marked by " + esc(m.from || m.id) + "<br>" + fmtAge(now() - m.ms) + " ago").addTo(S.gChk); pts.push([m.lat, m.lon]); });
+  if (S.focus) { S.follow = false; $("btnFollow").setAttribute("aria-pressed", "false"); S.map.setView(S.focus, 16); S.focus = null; return; }
+  const h = here();
+  if (h) { S.you.setLatLng(h).addTo(S.map); pts.push(h); } else S.map.removeLayer(S.you);
+  const cov = S.frame && S.frame.trip && S.frame.trip.cov;
+  if (cov && cov.lat) { S.cov.setLatLng([cov.lat, cov.lon]).addTo(S.map); } else S.map.removeLayer(S.cov);
+  if (S.follow && h) S.map.setView(h, Math.max(S.map.getZoom(), 12));
+  else if (!S.fitted && pts.length) { S.map.fitBounds(L.latLngBounds(pts).pad(0.3), { maxZoom: 15 }); S.fitted = true; }
+  checkCoverage();
+}
+$("btnFit").addEventListener("click", () => { S.follow = false; $("btnFollow").setAttribute("aria-pressed", "false"); S.fitted = false; renderMap(); });
+$("btnFollow").addEventListener("click", () => { S.follow = !S.follow; $("btnFollow").setAttribute("aria-pressed", S.follow ? "true" : "false"); renderMap(); });
+loadRegionList();
+
+/* ---------------------------------------------------------------- practice mode (no radio needed) */
+function stopDemo() { if (S.demo) { clearInterval(S.demo); S.demo = null; } if (S.mode === "demo") { if (S._realTrails) { S.trails = S._realTrails; S.route = S._realRoute || []; S._realTrails = null; } S.units = []; S.mode = "off"; S.frame = null; S.cairn = null; S.chans = []; S.checkins = new Map(); S.marks = []; S.mkset = new Set(); setStatus("off", "Not connected"); $("btnDemo").textContent = "Practice"; } }
+let demoState = null;
+function demoPos(d, jitter) { return d.gps[0].toFixed(5) + "," + d.gps[1].toFixed(5); }
+function demoOwn(d, what, ch) {
+  const txt = d.id + " " + what + " at: " + demoPos(d);
+  addRecord(JSON.stringify({ r: "o", t: Math.round(now() / 1000), u: d.up, id: d.id, ch: ch == null ? d.cfg.mc : ch, x: txt }), now(), false);
+}
+function demoChans() { S.chans = d0().chans.map((c) => ({ i: c.i, n: c.n, t: c.t })); S.mc = d0().cfg.mc; S.chmax = 40; }
+function d0() { return demoState; }
+function demoReply(o) { onLine(JSON.stringify(o)); }
+function demoCommand(line) {
+  const d = demoState; if (!d) return;
+  const m = /^cairn\s+(\S+)\s*(.*)$/.exec(line.trim()); if (!m) { conPush("# practice mode only understands cairn commands"); return; }
+  const w = m[1], rest = m[2].trim(), c = d.cfg, say = (t) => { conPush("# " + t); toast(t); };
+  if (w === "mode") { c.mode = rest === "disaster" ? "disaster" : "standard"; say("OK - " + c.mode.toUpperCase() + " mode"); }
+  else if (w === "time") d.skew = 0;
+  else if (w === "chans") demoChans();
+  else if (w === "units") demoReply({ cairn: 1, units: d.units, max: 48 });
+  else if (w === "unit") {
+    const q = rest.split(/\s+/), sub = q[0], what = (q[1] || "").toLowerCase(), arg = (q[2] || "").toUpperCase(), cru = parseInt(q[3], 10);
+    const at = d.units.findIndex((u) => u.k === what.slice(0, 12) || u.c === what.toUpperCase() || ("CRU-" + String(u.n).padStart(2, "0")) === what.toUpperCase());
+    const free = () => { for (let c = 1; c <= 99; c++) if (!d.units.some((u) => u.n === c)) return c; return 0; };
+    if (sub === "add" && what.length >= 12 && /^[A-Z0-9\/-]{1,12}$/.test(arg) && arg.indexOf("CRU-") !== 0) { if (at >= 0) { d.units[at].c = arg; if (cru) d.units[at].n = cru; } else d.units.push({ k: what.slice(0, 12), n: cru || free(), c: arg }); say("OK - " + arg + " bound"); }
+    else if (sub === "name" && at >= 0 && arg) { d.units[at].c = arg; say("OK - renamed to " + arg); }
+    else if (sub === "cru" && at >= 0 && parseInt(q[2], 10) >= 1) { d.units[at].n = parseInt(q[2], 10); say("OK - CRU number changed"); }
+    else if (sub === "del" && at >= 0) { d.units.splice(at, 1); say("OK - unit removed"); }
+    else say("Err - could not do that");
+    demoReply({ cairn: 1, units: d.units, max: 48 });
+  }
+  else if (w === "ok") { demoOwn(d, "Reporting"); d.okAt = now(); say("OK - sending check-in"); }
+  else if (w === "ustatus") { const k = parseInt(rest, 10); if (k >= 1 && k <= 8) { demoOwn(d, "STATUS " + STATUS_LABEL[k]); say("OK - sending STATUS " + STATUS_LABEL[k]); } }
+  else if (w === "mark") { const k = parseInt(rest, 10); if (k >= 1 && k <= 7) { demoOwn(d, "MARK " + MARK_LABEL[k]); say("OK - marking " + MARK_LABEL[k] + " here"); } }
+  else if (w === "help") {
+    if (rest === "off") { if (c.help) { c.help = 0; demoOwn(d, "Reporting"); say("OK - help beacon stopped; sending I'M OK"); } }
+    else { c.help = 1; d.hnext = 0; say("OK - HELP beacon ON"); }
+  }
+  else if (w === "power") { if (rest === "full" || rest === "saver") c.pw = rest; say("OK - power " + c.pw); }
+  else if (w === "antenna") { const g = parseFloat(rest); if (g >= 0 && g <= 20) { c.ant = Math.round(g * 10) / 10; say("OK - antenna " + c.ant + " dBi"); } }
+  else if (w === "auto") { c.auto = rest === "off" ? 0 : parseInt(rest, 10) || 0; say("OK - automatic check-in " + (c.auto ? "every " + c.auto + " min" : "off")); }
+  else if (w === "beacon") { c.beacon = Math.max(1, Math.min(60, parseInt(rest, 10) || 5)); say("OK - help call repeats every " + c.beacon + " min"); }
+  else if (w === "eco") { c.ecoon = rest === "off" ? 0 : 1; say("OK - battery saving " + (c.ecoon ? "on" : "off")); }
+  else if (w === "lowbat") { c.lowbat = rest === "off" ? 0 : 1; say("OK - low-battery message " + (c.lowbat ? "on" : "off")); }
+  else if (w === "main") { const k = parseInt(rest, 10); if (d.chans.some((x) => x.i === k)) { c.mc = k; S.mc = k; say("OK - check-ins go to channel " + k); } }
+  else if (w === "chan") {
+    const cm = /^(\S+)\s*(.*)$/.exec(rest) || [0, "", ""], op = cm[1], arg = cm[2];
+    if (op === "add" || op === "new") {
+      let name = arg, tag = false;
+      if (name.charAt(0) === "#") { tag = true; name = name.toLowerCase(); }
+      else if (op === "add") name = name.replace(/\s+[0-9a-fA-F]{32}$/, "");
+      const ex = d.chans.find((x) => x.n === name);
+      if (ex) demoReply({ cairn: 1, chanres: { op, ok: 1, i: ex.i, why: "already", n: name } });
+      else {
+        let i = 1; while (d.chans.some((x) => x.i === i)) i++;
+        if (i >= 40) demoReply({ cairn: 1, chanres: { op, ok: 0, i: -1, why: "full", n: "" } });
+        else { d.chans.push({ i, n: name, t: tag ? "tag" : "key", k: tag ? "9cd8fcf22a47333b591d96a2b848b73f" : Array.from({ length: 32 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("") }); demoReply({ cairn: 1, chanres: { op, ok: 1, i, why: "", n: name } }); }
+      }
+    } else if (op === "remove") {
+      const i = parseInt(arg, 10), ex = d.chans.find((x) => x.i === i);
+      if (i > 0 && ex) { d.chans = d.chans.filter((x) => x.i !== i); if (c.mc === i) c.mc = 0; demoReply({ cairn: 1, chanres: { op: "remove", ok: 1, i, why: "", n: "" } }); }
+      else demoReply({ cairn: 1, chanres: { op: "remove", ok: 0, i, why: "none", n: "" } });
+    } else if (op === "key") {
+      const ex = d.chans.find((x) => x.i === parseInt(arg, 10)); if (ex) demoReply({ cairn: 1, chankey: { i: ex.i, n: ex.n, k: ex.k || "8b3387e9c5cdea6ac9e5edbaa115cd72" } });
+    }
+    demoChans();
+  }
+  else if (w === "say" || w === "dm") {
+    const mm = /^(\S+) (.*)$/.exec(rest); if (!mm) return;
+    let chan = "";
+    if (w === "say") { const ch = d.chans.find((x) => String(x.i) === mm[1]); chan = ch ? ch.n : "Public"; }
+    else { for (const n of S.nodes.values()) if (n.k.indexOf(mm[1].toUpperCase()) === 0) chan = n.name; }
+    addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: w === "say" ? "s" : "p", f: "Me", c: chan, s: 0, h: -1, x: mm[2] }), now(), false);
+    toast("Message sent (practice).");
+    setTimeout(() => addRecord(JSON.stringify({ r: "m", t: Math.round(now() / 1000), u: d.up, k: w === "say" ? "c" : "d", f: w === "say" ? "Alex" : chan, c: w === "say" ? chan : "", s: -3, h: 1, x: "Copy that, got your message." }), now(), false), 2500);
+  }
+  else if (w === "dump" || w === "id" || w === "config" || w === "status" || w === "clear") conPush("# (practice) " + w);
+  else conPush("# (practice) this command is not simulated");
+}
+function demoIncoming(d) {
+  const t = Math.round(now() / 1000), g = d.gps;
+  const msg = (f, id, what, dlat, dlon) => addRecord(JSON.stringify({ r: "m", t, u: d.up, k: "c", f, c: "Public", s: -3, h: 1, x: id + " " + what + " at: " + (g[0] + dlat).toFixed(5) + "," + (g[1] + dlon).toFixed(5) }), now(), false);
+  if (d.tick === 25) msg("Alex", "LC-W4PQ8RTN", "NEEDS HELP", 0.0042, 0.0031);
+  if (d.tick === 50) msg("Dana", "LC-9TMX3KDH", "STATUS NEED WATER", -0.006, 0.002);
+  if (d.tick === 70) msg("Sam", "LC-C7HJ2VQP", "MARK ROAD BLOCKED", 0.002, -0.004);
+  if (d.tick === 90) msg("Dana", "LC-9TMX3KDH", "LOW BATTERY 14%", -0.006, 0.002);
+}
+function startDemo() {
+  if (S.mode === "serial") { toast("Disconnect the radio first."); return; }
+  if (S.mode === "demo") { stopDemo(); return; }
+  S.mode = "demo"; setStatus("demo", "Practice data"); $("btnDemo").textContent = "Stop practice";
+  S.nodes = new Map(); S.journal = []; S.jset = new Set(); S.checkins = new Map();
+  const d = demoState = { id: "LC-K7M2P4XQ", gps: [29.7604, -95.3698], up: 600, skew: 90, okAt: 0, tick: 0, hnext: 0, bat: 76, cfg: { mode: "standard", pw: "full", ant: 2, auto: 0, beacon: 5, ecoon: 1, lowbat: 1, mc: 0, help: 0 }, chans: [{ i: 0, n: "Public", t: "pub", k: "8b3387e9c5cdea6ac9e5edbaa115cd72" }, { i: 1, n: "Neighborhood", t: "key", k: "00112233445566778899aabbccddeeff" }] };
+  S.marks = []; S.mkset = new Set(); demoChans();
+  S._realTrails = S.trails; S.trails = new Map(); S._realRoute = S.route; S.route = []; d.units = [{ k: "beefcafe0001", n: 1, c: "HIKER-1" }, { k: "7f3e9a11b2c3", n: 2, c: "RPT-DOWNTOWN" }, { k: "aaaaaaaaaaaa", n: 3, c: "TRUCK-2" }]; S.units = d.units.slice();
+  const rt = Math.round(now() / 1000);
+  const reps = [["Hilltop-1", 1, -4.5, -96, 2, 29.8211, -95.4202], ["Downtown RPT", 2, -9.0, -108, 1, 29.7498, -95.3601], ["School Roof", 0, 6.2, -78, 0, 29.7701, -95.3512]];
+  reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; addRecord(JSON.stringify({ r: "a", t: rt - 60 * (i + 1), u: 100 + i, ty: 2, n: r[0], k, h: r[1], s: r[2], rs: r[3], la: r[5], lo: r[6] }), now(), false); });
+  addRecord(JSON.stringify({ r: "a", t: rt - 300, u: 80, ty: 1, n: "Alex's radio", k: "BEEFCAFE0001", h: 1, s: -2.0, rs: -99 }), now(), false);
+  addRecord(JSON.stringify({ r: "a", t: rt - 240, u: 90, ty: 3, n: "Neighborhood Board", k: "ABCD00112233", h: 2, s: -7.5, rs: -104, la: 29.77, lo: -95.38 }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 200, u: 120, k: "c", f: "Alex", c: "Public", s: -2.5, h: 1, x: "LC-W4PQ8RTN Reporting at: 29.76810,-95.37400" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 90 * 60, u: 130, k: "c", f: "Dana", c: "Public", s: -5.0, h: 2, x: "LC-9TMX3KDH Reporting at: 29.80100,-95.41000" }), now(), false);
+  addRecord(JSON.stringify({ r: "m", t: rt - 120, u: 140, k: "c", f: "Sam", c: "Public", s: -1.0, h: 0, x: "Water is rising on Elm St. Need a boat at the school." }), now(), false);
+  const tickDemo = () => {
+    if (d.tick % 4 === 0) { const a = d.tick / 40; addRecord(JSON.stringify({ r: "a", t: Math.round(now() / 1000), u: d.up, ty: 1, n: "Alex's radio", k: "BEEFCAFE0001", h: 1, s: -2.0, rs: -99, la: 29.772 + 0.004 * Math.sin(a), lo: -95.38 + 0.006 * Math.cos(a) }), now(), false); }
+    if (d.tick === 3) addRecord(JSON.stringify({ r: "a", t: Math.round(now() / 1000) - 3600, u: d.up, ty: 1, n: "Truck 2", k: "AAAAAAAAAAAA", h: 2, s: -6.0, rs: -104, la: 29.74, lo: -95.33 }), now() - 3600000, false);
+    d.tick++; d.up += 1; d.gps = [29.7604 + 0.0002 * Math.sin(d.tick / 30), -95.3698 + 0.0002 * Math.cos(d.tick / 30)];
+    const gone = d.tick % 120 > 90;   // every two minutes the best repeater drops out, to show the red banner
+    const links = gone ? [] : [{ id: "D40C55", name: "School Roof", best: 1, sc: 78, rel: 80, lq: 91, snr: 6.2, rssi: -78, age: 4, hit: 5, n: 6 }, { id: "A1B2C3", name: "Hilltop-1", best: 0, sc: 40, rel: 50, lq: 60, snr: -4.5, rssi: -96, age: 30, hit: 2, n: 4 }];
+    onFrame({ nova: 1, ed: "cairn", v: "1.1.0-mph", unit: "mph", t: d.tick * 1000, prof: d.cfg.mode === "disaster" ? "hike" : "desk", bat: { mv: 0, pct: 0 }, gps: { fix: 1, lat: d.gps[0], lon: d.gps[1], sats: 9, spd: 0 },
+      links, dl: { sent: 3, rep: 1, ok: 2, fail: 0, list: [] }, trip: { km: 0, cov: { lat: 29.8211, lon: -95.4202, m: 7400, brg: 315, age: 60 } }, diag: { rx: 120 + d.tick, tx: 12, snr: 4.2, last_rx_s: 3, up_s: d.up } });
+    const cf = d.cfg, dis = cf.mode === "disaster", sv = !dis && !cf.help && (cf.pw === "saver"), tx = sv ? 22 : 28;
+    if (cf.help && now() >= (d.hnext || 0)) { demoOwn(d, "NEEDS HELP"); d.hnext = now() + cf.beacon * 60000; }
+    demoIncoming(d);
+    S.cairn = { cairn: 1, id: d.id, ver: "1.1.0", kb: 12, lines: S.journal.length, lost: 0, mode: cf.mode, okago: d.okAt ? Math.round((now() - d.okAt) / 1000) : 0, now: Math.round(now() / 1000) - d.skew,
+      txs: sv ? 10 : 22, tx, mw: sv ? 158 : 631, pw: cf.pw, band: 1, ant: cf.ant, legal: 22, help: cf.help, hnext: cf.help ? Math.max(0, Math.round((d.hnext - now()) / 1000)) : 0, beacon: cf.beacon,
+      auto: cf.auto, eco: 0, ecoon: cf.ecoon, lowbat: cf.lowbat, mc: cf.mc, bat: d.bat, ext: 0, chmax: 40 };
+    reps.forEach((r, i) => { const k = ["A1B2C3D4E5F0","7F3E9A11B2C3","D40C55E8A901"][i]; if (i === 2 && gone) return; onFound({ k, t: 2, n: r[0], hop: r[1], rs: r[3], sn: r[2], c: 5 + d.tick, ago: i === 2 ? 4 : 30 * (i + 1), first: 3000, alat: r[5], alon: r[6] }); });
+    render();
+  };
+  tickDemo(); S.demo = setInterval(tickDemo, 1000);
+}
+$("btnDemo").addEventListener("click", startDemo);
+
+/* ---------------------------------------------------------------- CAIRN 1.1: home, help, alerts, channels, power, report */
+const cfgNow = () => S.cairn || {};
+const ready = () => S.mode !== "off" && !!(S.cairn && S.cairn.id);
+function conPush(t) { S.con.push(t); if (S.con.length > 80) S.con.shift(); const e = $("conLog"); if (e) { e.textContent = S.con.join("\n"); e.scrollTop = e.scrollHeight; } }
+function setIf(el, prop, val) { if (el[prop] !== val) el[prop] = val; }
+
+function applyView() {
+  document.body.classList.toggle("easy", S.easy);
+  $("btnView").textContent = S.easy ? "Full view" : "Easy view";
+  if (S.easy && ["station", "nearby", "log"].includes(S.tab)) showTab("home");
+}
+$("btnView").addEventListener("click", () => { S.easy = !S.easy; store.set("cairn-view", S.easy ? "easy" : "full"); applyView(); });
+
+/* --- buttons on Home --- */
+(function buildPickers() {
+  $("stGrid").innerHTML = STATUS_LABEL.slice(1).map((l, i) => '<button data-st="' + (i + 1) + '" disabled>' + esc(nice(l)) + "</button>").join("");
+  $("mkGrid").innerHTML = MARK_LABEL.slice(1).map((l, i) => '<button data-mk="' + (i + 1) + '" disabled>' + esc(nice(l)) + "</button>").join("");
+  $("stGrid").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { send("cairn ustatus " + b.dataset.st); toast("Sending: " + nice(STATUS_LABEL[+b.dataset.st]) + "..."); }));
+  $("mkGrid").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { send("cairn mark " + b.dataset.mk); toast("Marking: " + nice(MARK_LABEL[+b.dataset.mk]) + " at your position..."); }));
+})();
+$("hmOk").addEventListener("click", () => { send("cairn ok"); toast("Sending I'M OK with your position..."); });
+$("hmHelp").addEventListener("click", askHelp);
+$("modeStandard").addEventListener("click", () => send("cairn mode standard"));
+$("modeDisaster").addEventListener("click", () => send("cairn mode disaster"));
+$("hmChan").addEventListener("change", (e) => send("cairn main " + (+e.target.value || 0)));
+
+function askHelp() {
+  if (!ready()) return;
+  if (cfgNow().help) { send("cairn help off"); toast("Cancelling the help call..."); return; }
+  const o = document.createElement("div"); o.className = "overlay"; o.id = "helpDlg";
+  o.innerHTML = '<div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><h3 id="dlgT">Send a call for help?</h3>' +
+    "<p>Everyone in radio range will see <b>NEEDS HELP</b> and your position. It repeats every <b>" + N(cfgNow().beacon || 5) + " minutes</b> until you cancel it.</p>" +
+    "<p><b>If you can reach 911 by phone, call 911 first.</b> This radio only reaches other radios, not emergency services.</p>" +
+    '<div class="row"><button id="dlgNo">NO, GO BACK</button><button id="dlgYes" class="danger">YES, SEND HELP</button></div></div>';
+  document.body.appendChild(o);
+  const close = () => { o.remove(); document.removeEventListener("keydown", esc2); };
+  const esc2 = (e) => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", esc2);
+  $("dlgNo").addEventListener("click", close); $("dlgNo").focus();
+  $("dlgYes").addEventListener("click", () => { close(); send("cairn help"); toast("HELP call sent. It repeats until you cancel it.", 6000); });
+}
+
+/* --- Home screen --- */
+const latestHtml = (n) => {
+  const msgs = S.journal.filter((r) => r.r === "m").slice(-n).reverse();
+  return msgs.length ? msgs.map((r) => '<div style="padding:4px 0;border-bottom:1px solid var(--line)"><span class="muted">' + esc(fmtTime(r._ms)) + "</span> <b>" + esc(r.f || r.c || "?") + "</b> " + (r.c && r.f ? '<span class="muted">in ' + esc(r.c) + "</span> " : "") + '<span class="txt">' + esc(r.x) + "</span></div>").join("") : '<span class="muted">No messages yet.</span>';
+};
+function readyItems() {
+  const c = cfgNow(), f = S.frame, g = f && f.gps, out = [];
+  const add = (lvl, txt) => out.push([lvl, txt]);
+  add(S.mode === "off" ? "bad" : "ok", S.mode === "off" ? "Radio not connected. Plug it in, then press Connect radio." : "Radio connected" + (S.mode === "demo" ? " (practice)" : ""));
+  if (!ready()) return out;
+  add("ok", "This station is " + c.id);
+  add(g && g.fix ? "ok" : "warn", g && g.fix ? "Position found (" + N(g.sats) + " satellites)" : "No position yet. Go outside or to a window and wait a few minutes. Messages still work without it.");
+  const best = f && (f.links || []).find((l) => l.best === 1);
+  add(best ? "ok" : "warn", best ? "A repeater is heard: you can reach other people" : "No repeater heard. Other radios close by can still hear you directly; move higher or outdoors to reach further.");
+  if (c.now) { const off = Math.abs(Math.round(Date.now() / 1000 - c.now)); add(off > 30 ? "warn" : "ok", off > 30 ? "Radio clock is off by " + off + " s (the page will fix it)" : "Radio clock is correct"); }
+  if (c.bat != null && c.bat >= 0) add(c.ext ? "ok" : c.bat <= 15 ? "bad" : c.bat <= 25 ? "warn" : "ok", "Radio battery " + c.bat + "%" + (c.ext ? ", on outside power" : ""));
+  else add("ok", c.ext ? "Radio is on outside power" : "No radio battery fitted: it runs from the hub's power");
+  if (S.tabBat) { const pc = Math.round(S.tabBat.level * 100); add(S.tabBat.charging || pc > 30 ? "ok" : pc > 15 ? "warn" : "bad", "Tablet battery " + pc + "%" + (S.tabBat.charging ? ", charging" : "")); }
+  if (c.band === 0) add("warn", "Radio is not on the US 902-928 MHz band; its power is left as it was set");
+  else add("ok", "Radio power " + N(c.mw) + " mW (" + (c.ecoon && c.eco ? "saving battery" : c.pw === "saver" && c.mode !== "disaster" ? "saver" : "full") + ")");
+  add(S.chans.some((x) => x.i === 0) || S.mode === "demo" ? "ok" : "warn", S.chans.length ? "Public channel is present" : "Waiting for the channel list");
+  add(c.help ? "bad" : "ok", c.help ? "HELP CALL IS ON. Press the red button to cancel it." : "No help call running");
+  return out;
+}
+function renderHome() {
+  renderBanner();
+  const c = cfgNow(), ok = ready(), help = !!c.help, dis = c.mode === "disaster";
+  const hb = $("hmHelp"), html = help ? "CANCEL HELP CALL<small>Help call is ON. Next one in " + esc(fmtAge((c.hnext || 0) * 1000)) + "</small>" : "I NEED HELP<small>Calls for help every few minutes until you cancel</small>";
+  if (hb.dataset.h !== html) { hb.dataset.h = html; hb.innerHTML = html; }
+  hb.classList.toggle("on", help); hb.disabled = !ok; $("hmOk").disabled = !ok;
+  document.querySelectorAll("#stGrid button, #mkGrid button").forEach((b) => { b.disabled = !ok; });
+  $("hmLast").textContent = !ok ? "Connect the radio to use these buttons." : (c.okago ? "Last I'M OK sent " + fmtAge(c.okago * 1000) + " ago." : "No I'M OK sent yet this session.") + (c.auto ? " Automatic I'M OK every " + c.auto + " min." : "");
+  $("modeStandard").setAttribute("aria-pressed", dis ? "false" : "true"); $("modeDisaster").setAttribute("aria-pressed", dis ? "true" : "false");
+  $("modeStandard").disabled = $("modeDisaster").disabled = !ok;
+  $("modeNow").textContent = ok ? "The radio is in " + (dis ? "DISASTER" : "STANDARD") + " mode." : "";
+  const sel = $("hmChan"), chans = S.chans.length ? S.chans : [{ i: 0, n: "Public" }], sig = chans.map((x) => x.i + ":" + x.n).join("|") + "#" + S.mc;
+  if (sel.dataset.sig !== sig && document.activeElement !== sel) { sel.dataset.sig = sig; sel.innerHTML = chans.map((x) => '<option value="' + x.i + '">' + x.i + " - " + esc(x.n) + "</option>").join(""); sel.value = String(S.mc); }
+  sel.disabled = !ok;
+  const items = readyItems(), bad = items.some((x) => x[0] === "bad"), warn = items.some((x) => x[0] === "warn");
+  $("readyList").innerHTML = items.map((x) => '<li><span class="i ' + x[0] + '">' + (x[0] === "ok" ? "&#10003;" : x[0] === "warn" ? "!" : "&#10007;") + "</span><span>" + esc(x[1]) + "</span></li>").join("");
+  const rs = $("readySum"); rs.textContent = bad ? "NOT READY: fix the red items" : warn ? "READY, with notes" : "READY"; rs.style.color = bad ? "var(--bad)" : warn ? "var(--warn)" : "var(--good)";
+  renderHeard();
+  $("homeLatest").innerHTML = "<b>Latest messages</b>" + latestHtml(4);
+}
+
+/* --- alerts shown on every screen --- */
+let AC = null;
+function beep() {
+  if (!S.sound) return;
+  try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch (e) {}
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < 3; i++) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = i % 2 ? 660 : 880; o.connect(g); g.connect(AC.destination); const t0 = AC.currentTime + i * 0.28; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24); o.start(t0); o.stop(t0 + 0.26); }
+  } catch (e) {}
+}
+function renderAlerts() {
+  const c = cfgNow(), own = c.id, t = now(), box = $("alerts"), items = [];
+  if (c.help) items.push('<div class="al"><div class="t">YOUR HELP CALL IS ON</div><div>Next call in ' + esc(fmtAge((c.hnext || 0) * 1000)) + '. Others who hear it see your position.</div><div class="row"><button data-al="cancel" class="danger">Cancel my help call</button></div></div>');
+  if (ready() && c.bat != null && c.bat >= 0 && c.bat <= 15 && !c.ext) items.push('<div class="al warn"><div class="t">Radio battery is low (' + N(c.bat) + '%)</div><div>Plug the radio into a power bank or the solar input.</div></div>');
+  unitMissing().forEach((m) => items.push('<div class="al warn"><div class="t">' + esc(m.u.c) + ' (' + esc(cruTxt(m.u)) + ') NOT HEARD for ' + esc(fmtAge(m.ago)) + '</div><div>Last heard ' + esc(fmtAge(m.ago)) + ' ago. Check on them.</div><div class="row"><button data-al="people">See units</button></div></div>'));
+  const helps = Array.from(S.checkins.values()).filter((x) => x.id !== own && effHelp(x) && t - x.helpMs < 6 * 3600000).sort((a, b) => b.helpMs - a.helpMs);
+  let fresh = false;
+  helps.slice(0, 3).forEach((x) => {
+    const p = x.helpLat != null ? [x.helpLat, x.helpLon] : (x.lat != null ? [x.lat, x.lon] : null), key = x.id + "|" + x.helpMs;
+    if (!S.beeped.has(key)) { S.beeped.add(key); if (t - x.helpMs < 120000) fresh = true; }
+    items.push('<div class="al"><div class="t">HELP CALL from ' + esc(x.from || x.id) + '</div><div class="mono">' + esc(x.id) + "</div><div>" + esc(fmtAge(t - x.helpMs)) + " ago" + (p ? " &middot; " + esc(relPos(p) || (p[0].toFixed(5) + ", " + p[1].toFixed(5))) + " &middot; " + mapsLink(p) : " &middot; no position sent") + '</div><div class="row">' + (p ? '<button data-al="map" data-p="' + p[0] + "," + p[1] + '">Show on map</button>' : "") + '<button data-al="ack" data-id="' + esc(x.id) + '" class="pri">Got it</button></div></div>');
+  });
+  if (helps.length > 3) items.push('<div class="al"><div class="t">' + (helps.length - 3) + " more help calls</div><div class=\"row\"><button data-al=\"people\">See everyone</button></div></div>");
+  if (fresh) beep();
+  const html = items.join("");
+  if (box.dataset.h !== html) {
+    box.dataset.h = html; box.innerHTML = html;
+    box.querySelectorAll("[data-al]").forEach((b) => b.addEventListener("click", () => {
+      const k = b.dataset.al;
+      if (k === "cancel") send("cairn help off");
+      else if (k === "ack") { const x = S.checkins.get(b.dataset.id); if (x) { S.ack[x.id] = x.helpMs; jset("cairn-ack", S.ack); render(); } }
+      else if (k === "map") { S.focus = b.dataset.p.split(",").map(Number); showTab("map"); }
+      else if (k === "people") showTab("units");
+    }));
+  }
+}
+
+/* --- channels: add, make, join, remove --- */
+const KINDNAME = { pub: "Public", tag: "Open", key: "Private" };
+function onChanRes(r) {
+  const nm = r.n ? '"' + r.n + '"' : "that channel";
+  let msg;
+  if (r.ok) msg = r.op === "remove" ? "Channel removed." : r.why === "already" ? "You already have " + nm + " (channel " + r.i + ")." : "Added " + nm + " as channel " + r.i + ".";
+  else msg = r.why === "full" ? "All channel slots are used. Remove one first." : r.why === "none" ? "There is no such channel." : "The radio could not do that. Try again.";
+  toast(msg, 5000); $("chMsg").textContent = msg;
+  if (r.ok && r.op === "new" && r.i >= 0) send("cairn chan key " + r.i);
+  if (S.rmAsk >= 0) S.rmAsk = -1;
+  if (S.mode === "serial") send("cairn chans");
+}
+function renderKeyBox() {
+  const k = S.keyShow, b = $("keyBox"); if (!k) { b.hidden = true; return; }
+  b.hidden = false;
+  b.innerHTML = '<b>Key for "' + esc(k.n) + '"</b><div class="mono" style="margin:6px 0;font-size:18px">' + esc(k.k) + '</div><div class="small">To let someone join: give them the name <b>' + esc(k.n) + '</b> and this key. On their CAIRN they use <i>Join a private channel</i>. Anyone who has the key can read this channel, so only share it with people you trust.</div><div class="row" style="margin-top:8px"><button id="btnKeyCopy">Copy name and key</button><button id="btnKeyHide">Hide</button></div>';
+  $("btnKeyCopy").addEventListener("click", () => { const txt = k.n + " " + k.k; (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast("Copied."), () => toast("Could not copy. Read it out or write it down.")); });
+  $("btnKeyHide").addEventListener("click", () => { S.keyShow = null; renderKeyBox(); });
+}
+function renderChanMgr() {
+  const chans = S.chans.length ? S.chans : [], sig = JSON.stringify(chans) + S.mc + "|" + S.rmAsk + "|" + ready();
+  $("chUsed").textContent = chans.length || "?"; $("chMax").textContent = S.chmax;
+  const lst = $("chanList");
+  if (lst.dataset.sig !== sig) {
+    lst.dataset.sig = sig;
+    lst.innerHTML = chans.map((c) => {
+      const kind = c.t || (c.i === 0 ? "pub" : "key"), ask = S.rmAsk === c.i;
+      return '<div class="chrow"><span class="nm">' + (kind === "tag" ? "" : "") + esc(c.n) + ' <span class="tag ' + (kind === "pub" ? "rep" : kind === "tag" ? "comp" : "room") + '">' + KINDNAME[kind] + "</span>" + (c.i === S.mc ? ' <span class="tag sens">check-ins go here</span>' : "") + "</span>" +
+        (c.i !== S.mc ? '<button data-chuse="' + c.i + '"' + (ready() ? "" : " disabled") + ">Use for check-ins</button>" : "") +
+        (kind === "key" ? '<button data-chkey="' + c.i + '"' + (ready() ? "" : " disabled") + ">Show key</button>" : "") +
+        (c.i > 0 ? (ask ? 'Remove it? <button data-chrm="' + c.i + '" class="danger">Yes, remove</button><button data-chno="1">No</button>' : '<button data-chask="' + c.i + '"' + (ready() ? "" : " disabled") + ">Remove</button>") : "") + "</div>";
+    }).join("") || '<p class="muted small">Connect the radio to see its channels.</p>';
+    lst.querySelectorAll("[data-chuse]").forEach((b) => b.addEventListener("click", () => { send("cairn main " + b.dataset.chuse); S.mc = +b.dataset.chuse; lst.dataset.sig = ""; renderChanMgr(); }));
+    lst.querySelectorAll("[data-chkey]").forEach((b) => b.addEventListener("click", () => send("cairn chan key " + b.dataset.chkey)));
+    lst.querySelectorAll("[data-chask]").forEach((b) => b.addEventListener("click", () => { S.rmAsk = +b.dataset.chask; renderChanMgr(); }));
+    lst.querySelectorAll("[data-chno]").forEach((b) => b.addEventListener("click", () => { S.rmAsk = -1; renderChanMgr(); }));
+    lst.querySelectorAll("[data-chrm]").forEach((b) => b.addEventListener("click", () => { send("cairn chan remove " + b.dataset.chrm); S.rmAsk = -1; }));
+  }
+  const okName = (v) => v.length > 0 && byteLen(v) <= 31 && !/["\\\x00-\x1f]/.test(v) && v === v.trim();
+  $("btnChTag").disabled = !(ready() && /^[A-Za-z0-9-]{1,30}$/.test($("chTag").value.trim()));
+  $("btnChNew").disabled = !(ready() && okName($("chNew").value) && $("chNew").value.charAt(0) !== "#");
+  $("btnChPriv").disabled = !(ready() && okName($("chPN").value) && $("chPN").value.charAt(0) !== "#" && /^[0-9a-fA-F]{32}$/.test($("chPK").value.trim()));
+}
+["chTag", "chNew", "chPN", "chPK"].forEach((id) => $(id).addEventListener("input", renderChanMgr));
+$("btnChTag").addEventListener("click", () => { send("cairn chan add #" + $("chTag").value.trim().toLowerCase()); $("chTag").value = ""; renderChanMgr(); });
+$("btnChNew").addEventListener("click", () => { send("cairn chan new " + $("chNew").value); $("chNew").value = ""; renderChanMgr(); });
+$("btnChPriv").addEventListener("click", () => { send("cairn chan add " + $("chPN").value + " " + $("chPK").value.trim().toLowerCase()); $("chPN").value = ""; $("chPK").value = ""; renderChanMgr(); });
+
+
+/* --- power controls and calculator --- */
+function renderPowerCtl() {
+  const c = cfgNow(), ok = ready();
+  const dbm = N(c.tx), mw = N(c.mw);
+  let now_ = !ok ? "Connect the radio to see its settings." : c.band === 0 ? "Not on the US band: power left as set in the radio." : "Radio power now: " + mw + " mW (about " + dbm + " dBm)";
+  $("pwrNow").textContent = now_;
+  let why = "";
+  if (ok && c.band !== 0) {
+    if (c.mode === "disaster") why = "DISASTER mode: always the highest power the rules allow with your antenna.";
+    else if (c.help) why = "Help call running: using the highest power the rules allow.";
+    else if (c.eco) why = "Battery saving is on because the radio battery is low: power is reduced to make the battery last.";
+    else if (c.pw === "saver") why = "SAVER is selected: lower power, shorter range, much less battery use.";
+    else why = "STANDARD mode: the highest power the rules allow with your antenna (" + c.ant + " dBi).";
+  }
+  $("pwrWhy").textContent = why;
+  const act = document.activeElement && document.activeElement.id;
+  $("pwFull").setAttribute("aria-pressed", c.pw === "saver" ? "false" : "true"); $("pwSaver").setAttribute("aria-pressed", c.pw === "saver" ? "true" : "false");
+  $("ecoOn").setAttribute("aria-pressed", c.ecoon === 0 ? "false" : "true"); $("ecoOff").setAttribute("aria-pressed", c.ecoon === 0 ? "true" : "false");
+  $("lbOn").setAttribute("aria-pressed", c.lowbat === 0 ? "false" : "true"); $("lbOff").setAttribute("aria-pressed", c.lowbat === 0 ? "true" : "false");
+  if (act !== "antIn" && c.ant != null) setIf($("antIn"), "value", String(c.ant));
+  if (act !== "autoSel" && c.auto != null) { const v = String(c.auto); if (![...$("autoSel").options].some((o) => o.value === v)) { const o = document.createElement("option"); o.value = v; o.textContent = "Every " + v + " minutes"; $("autoSel").appendChild(o); } setIf($("autoSel"), "value", v); }
+  if (act !== "bcnSel" && c.beacon != null) { const v = String(c.beacon); if (![...$("bcnSel").options].some((o) => o.value === v)) { const o = document.createElement("option"); o.value = v; o.textContent = v + " minutes"; $("bcnSel").appendChild(o); } setIf($("bcnSel"), "value", v); }
+  document.querySelectorAll("#pwrCard button, #pwrCard select, #pwrCard input").forEach((e) => { e.disabled = !ok; });
+}
+$("pwFull").addEventListener("click", () => send("cairn power full"));
+$("pwSaver").addEventListener("click", () => send("cairn power saver"));
+$("ecoOn").addEventListener("click", () => send("cairn eco on")); $("ecoOff").addEventListener("click", () => send("cairn eco off"));
+$("lbOn").addEventListener("click", () => send("cairn lowbat on")); $("lbOff").addEventListener("click", () => send("cairn lowbat off"));
+$("btnAnt").addEventListener("click", () => { const v = parseFloat($("antIn").value); if (!(v >= 0 && v <= 20)) { toast("Antenna gain must be between 0 and 20 dBi."); return; } send("cairn antenna " + v); });
+$("autoSel").addEventListener("change", (e) => send("cairn auto " + (+e.target.value ? e.target.value : "off")));
+$("bcnSel").addEventListener("change", (e) => send("cairn beacon " + e.target.value));
+
+const CALC_IDS = ["cBank", "cBanks", "cTab", "cTabH", "cSol", "cSun", "cMsgs"];
+const hrsText = (h) => (h < 48 ? h.toFixed(h < 10 ? 1 : 0) + " hours" : (h / 24).toFixed(1) + " days");
+function calc() {
+  const v = {}; CALC_IDS.forEach((i) => { v[i] = Math.max(0, parseFloat($(i).value) || 0); });
+  jset("cairn-calc", v);
+  const radiosW = 1.2, perMsgWh = 0.0008;
+  const dayUse = radiosW * 24 + v.cTab * v.cTabH + v.cMsgs * 24 * perMsgWh;
+  const stored = v.cBank * v.cBanks * 0.8, solar = v.cSol * v.cSun * 0.7;
+  const net = solar - dayUse;
+  let h = "<div>You use about <b>" + dayUse.toFixed(0) + " Wh a day</b> (radios and hub " + (radiosW * 24).toFixed(0) + " Wh, tablet " + (v.cTab * v.cTabH).toFixed(0) + " Wh).</div>";
+  h += "<div>Power banks hold about <b>" + stored.toFixed(0) + " Wh</b> usable. Solar gives about <b>" + solar.toFixed(0) + " Wh</b> on a day like the one you entered.</div>";
+  if (dayUse <= 0) h += "<div>Enter the tablet draw to see a result.</div>";
+  else {
+    h += "<div style=\"margin-top:6px\">Without any sun: about <b>" + hrsText(stored / dayUse * 24) + "</b>.</div>";
+    h += net >= 0 ? '<div class="pill-ok" style="font-weight:800">With this much sun, solar covers what you use, and the power banks stay topped up.</div>' : '<div class="pill-late" style="font-weight:800">With this much sun, you run short by ' + (-net).toFixed(0) + " Wh a day, so the power banks last about " + hrsText(stored / -net * 24) + ".</div>";
+    h += '<div class="small muted" style="margin-top:6px">To make power last: lower the tablet screen brightness, close apps, send fewer messages, and keep the radios in Standard mode with battery saving ON. The tablet is almost always the biggest user.</div>';
+  }
+  $("calcOut").innerHTML = h;
+}
+(function () { const sv = jget("cairn-calc", null); CALC_IDS.forEach((i) => { if (sv && sv[i] != null) $(i).value = sv[i]; $(i).addEventListener("input", calc); }); calc(); })();
+
+/* --- situation report --- */
+let lastSit = "", lastShort = "";
+function buildSitrep() {
+  const c = cfgNow(), t = now(), own = c.id, L = [], h = here();
+  L.push("SITUATION REPORT   " + new Date().toLocaleString());
+  L.push("From station " + (own || "(unknown)") + (h ? " at " + h[0].toFixed(5) + "," + h[1].toFixed(5) : " (no position)"));
+  const best = S.frame && (S.frame.links || []).find((l) => l.best === 1);
+  L.push("Radio link: " + (S.mode === "off" ? "radio not connected" : best ? "repeater heard (" + (best.name || nameFor(best.id) || best.id) + ")" : "no repeater heard"));
+  const all = Array.from(S.checkins.values()).filter((x) => x.id !== own), late = (+$("lateMin").value || 30) * 60000;
+  const helps = all.filter(effHelp), overdue = all.filter((x) => t - x.ms > late && !effHelp(x));
+  L.push("People reporting: " + all.length + (overdue.length ? " (" + overdue.length + " overdue)" : ""));
+  if (c.help) L.push("THIS STATION IS CALLING FOR HELP");
+  helps.forEach((x) => { const p = x.helpLat != null ? [x.helpLat, x.helpLon] : (x.lat != null ? [x.lat, x.lon] : null); L.push("  HELP: " + x.id + (x.from ? " " + x.from : "") + ", " + fmtAge(t - x.helpMs) + " ago" + (p ? ", " + p[0].toFixed(5) + "," + p[1].toFixed(5) + (h ? " (" + relPos(p) + ")" : "") : ", no position")); });
+  const cnt = {}; all.forEach((x) => { if (x.status && t - x.status.ms < 12 * 3600000) cnt[x.status.label] = (cnt[x.status.label] || 0) + 1; });
+  const cs = Object.keys(cnt).sort().map((k) => cnt[k] + " " + nice(k).toLowerCase());
+  L.push("Statuses: " + (cs.length ? cs.join(", ") : "none"));
+  const mk = S.marks.slice().sort((a, b) => b.ms - a.ms).slice(0, 12);
+  L.push("Marked places: " + (mk.length ? "" : "none")); mk.forEach((m) => L.push("  " + nice(m.label) + (m.lat != null ? " at " + m.lat.toFixed(5) + "," + m.lon.toFixed(5) + (h ? " (" + relPos([m.lat, m.lon]) + ")" : "") : " (no position)") + ", " + fmtAge(t - m.ms) + " ago"));
+  const bat = [];
+  if (c.bat != null && c.bat >= 0) bat.push("radio " + c.bat + "%"); if (S.tabBat) bat.push("tablet " + Math.round(S.tabBat.level * 100) + "%");
+  L.push("Batteries: " + (bat.length ? bat.join(", ") : "not known") + ".  Mode: " + (c.mode === "disaster" ? "DISASTER" : "STANDARD"));
+  const short = "SITREP: " + all.length + " reporting" + (helps.length ? ", " + helps.length + " NEED HELP" : "") + (cs.length ? ", " + cs.join(", ") : "") + (best ? ". Link OK." : ". No repeater.");
+  return [L.join("\n"), short];
+}
+$("btnSitrep").addEventListener("click", () => {
+  [lastSit, lastShort] = buildSitrep(); const b = $("sitrepBox"); b.hidden = false; b.textContent = lastSit + "\n\nOne-line version (" + byteLen(lastShort) + " characters):\n" + lastShort;
+  $("btnSitrepCopy").disabled = $("btnSitrepSave").disabled = false; $("btnSitrepSend").disabled = !ready() || byteLen(lastShort) > MAXMSG;
+});
+$("btnSitrepCopy").addEventListener("click", () => { (navigator.clipboard ? navigator.clipboard.writeText(lastSit) : Promise.reject()).then(() => toast("Copied."), () => toast("Could not copy. Use Save as a file.")); });
+$("btnSitrepSave").addEventListener("click", () => saveFile("cairn-report-" + stamp() + ".txt", "text/plain", lastSit + "\n"));
+$("btnSitrepSend").addEventListener("click", () => { send("cairn say " + S.mc + " " + lastShort); toast("Sending the one-line report..."); });
+
+/* --- sound --- */
+function applySound() { $("btnSound").setAttribute("aria-pressed", S.sound ? "true" : "false"); $("btnSound").textContent = "Sound for help calls: " + (S.sound ? "ON" : "OFF"); }
+$("btnSound").addEventListener("click", () => { S.sound = !S.sound; store.set("cairn-sound", S.sound ? "1" : "0"); applySound(); if (S.sound) beep(); });
+applySound();
+/* --- guide download: the guide on its own, as one web page file that opens with no internet --- */
+$("btnGuideSave").addEventListener("click", () => {
+  const doc = $("guideDoc").cloneNode(true);
+  doc.querySelectorAll(".g-btns").forEach((e) => e.remove());
+  const html = '<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CAIRN Field Guide</title>' +
+    '<style>:root{--ink:#111;--muted:#555;--accent:#0a6f8a;--line:#bbb;--good:#0b7a4f;--bad:#c4302b;--warn:#a15f00;--panel:#fff;--panel2:#f1f4f2}body{margin:0;padding:18px;background:#fff;color:#111;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}</style></head><body>' + doc.outerHTML + "</body></html>";
+  saveFile("CAIRN-Field-Guide.html", "text/html", html);
+});
+/* --- console --- */
+$("conForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $("conIn").value.trim(); if (!v) return; send(v); $("conIn").value = ""; });
+
+/* --- splash --- */
+(function () {
+  const sp = $("splash"); if (!sp) return;
+  $("splVer").textContent = DASH_VER;
+  let gone = false;
+  const go = () => { if (gone) return; gone = true; sp.classList.add("out"); setTimeout(() => sp.remove(), 700); };
+  sp.addEventListener("click", go); sp.addEventListener("keydown", go); document.addEventListener("keydown", go, { once: true });
+  setTimeout(go, /[?&]nosplash/.test(location.search) ? 0 : 4200);
+})();
+
+/* ---------------------------------------------------------------- start-up */
+(async function boot() {
+  applyKb();
+  try {
+    const rows = await DB.run("journal", "readonly", (st) => st.getAll());
+    rows.sort((a, b) => 0);
+    rows.forEach((r) => addRecord(r.l, r.rt, false));
+    S.journal.sort((a, b) => (a._ms || 0) - (b._ms || 0));
+  } catch (e) { /* no stored copy: the radio's journal arrives on connect */ }
+  applyView();
+  showTab(["home", "station", "chat", "nearby", "checkins", "units", "log", "map", "power", "guide"].concat(STN ? ["files", "online"] : []).includes(S.tab) ? S.tab : "home");
+  if (!STN && !("serial" in navigator)) notice("This browser cannot connect to a radio over USB. Use Chrome (version 148 or newer on Android). You can still read the log kept on this tablet, and use Practice to try the page.");
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+/*STATION-JS*/
+/*RADAR-JS-BEGIN*/
+/* ---------------------------------------------------------------- tactical status strip and radar (display only: reads S.nodes, sends nothing) */
+(function () {
+  const TAU = Math.PI * 2, PERIOD = 6500, reduce = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const R = { cv: null, g: null, win: 900000, sig: 0, prev: 0, t0: performance.now(), lit: new Map(), rows: [], range: 1000, rangeT: 1000, hi: "", css: null, cssAt: 0, listAt: 0, raf: 0 };
+  try { const w = +store.get("cairn-radarwin"); if (w === 300000 || w === 900000 || w === 3600000) R.win = w; } catch (e) { /* default */ }
+  const hash = (k) => { let h = 2166136261; for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; };
+  const RINGS = [250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
+  function colours() { const t = performance.now(); if (R.css && t - R.cssAt < 1500) return R.css; const cs = getComputedStyle(document.documentElement), v = (n) => cs.getPropertyValue(n).trim(); R.cssAt = t; R.css = { ink: v("--ink"), muted: v("--muted"), line: v("--line"), accent: v("--accent"), rep: v("--rep"), comp: v("--comp"), room: v("--room"), sens: v("--info"), good: v("--good"), panel: v("--panel"), bad: v("--bad"), light: document.documentElement.getAttribute("data-theme") === "light" }; return R.css; }
+  function contacts() {
+    const t = now(), h = here() || (M.on ? M.pos : null), out = [];
+    S.nodes.forEach((n) => { if (!n.ms || t - n.ms > R.win || !(n.type >= 1)) return; const p = n.apos; let ang, dist = -1, pos = false; if (h && p) { ang = bearing(h, p) * Math.PI / 180; dist = distM(h, p); pos = true; } else ang = hash(n.k) * TAU; out.push({ n, ang, dist, pos }); });
+    let far = 0; out.forEach((c) => { if (c.pos && c.dist > far) far = c.dist; });
+    if (mapWanted() && M.layer) { const tg = far ? far + MI10 : 5000; if (!M.rt || Math.abs(tg - M.rt) / M.rt > 0.06) M.rt = tg; R.rangeT = M.rt; } else { R.rangeT = RINGS.find((r) => r >= far * 1.08) || RINGS[RINGS.length - 1]; if (!far) R.rangeT = 1000; }
+    out.forEach((c) => { c.frac = c.pos ? Math.min(0.97, c.dist / R.range) : 0.9 - 0.75 * Math.min(1, Math.max(0, ((+c.n.snr) + 20) / 35)); });
+    return out;
+  }
+  function size() { const cv = R.cv, w = Math.max(200, Math.round(cv.clientWidth)), d = Math.min(2, window.devicePixelRatio || 1); if (cv.width !== Math.round(w * d)) { cv.width = Math.round(w * d); cv.height = Math.round(w * d); } R.g = cv.getContext("2d"); R.g.setTransform(cv.width / w, 0, 0, cv.width / w, 0, 0); return w; }
+  function shape(g, type, x, y, r, solid, col) {
+    g.beginPath();
+    if (type === 2) g.arc(x, y, r, 0, TAU); else if (type === 1) { g.moveTo(x, y - r * 1.15); g.lineTo(x + r * 1.05, y + r * 0.8); g.lineTo(x - r * 1.05, y + r * 0.8); g.closePath(); } else { g.moveTo(x, y - r * 1.2); g.lineTo(x + r * 1.1, y); g.lineTo(x, y + r * 1.2); g.lineTo(x - r * 1.1, y); g.closePath(); }
+    if (solid) { g.fillStyle = col; g.fill(); } else { g.lineWidth = 2; g.strokeStyle = col; g.stroke(); }
+  }
+  /* ---- map under the radar: same offline/online map as the main map, centred on this station, scale follows the farthest heard contact with a known position plus 10 miles ---- */
+  const MI10 = 16093.4, M = { map: null, layer: null, key: "", on: true, busy: false, z: NaN, ll: null, pos: null, rt: 0, sz: 0 };
+  try { if (store.get("cairn-radarmap") === "0") M.on = false; } catch (e) { /* default on */ }
+  function mapWanted() { const h = here(); if (h) M.pos = h; return M.on && !!window.L && !!M.pos; }
+  async function mapSync() {
+    const div = $("radarMapDiv"), h = M.pos; if (!div) return false;
+    if (!mapWanted() || (!S.offUse && !S.tileSpec)) { div.hidden = true; return false; }
+    div.hidden = false;
+    if (!M.map) { M.map = L.map(div, { zoomControl: false, attributionControl: false, zoomSnap: 0, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, inertia: false }); M.map.setView(h, 13, { animate: false }); }
+    const key = S.offUse ? "off:" + S.offUse : "on:" + (S.tileSpec && S.tileSpec.url);
+    if (key !== M.key && !M.busy) {
+      M.busy = true;
+      try {
+        if (M.layer) { M.map.removeLayer(M.layer); M.layer = null; }
+        if (S.offUse) { const rec = S.off.get(S.offUse), info = await readHeader(rec.url ? rec : rec.file); M.layer = protomapsL.leafletLayer({ url: info.p, flavor: "light", maxDataZoom: info.h.maxZoom, lang: "en", updateWhenZooming: false, keepBuffer: 4 }).addTo(M.map); }
+        else M.layer = L.tileLayer(S.tileSpec.url, Object.assign({}, S.tileSpec.opt, { updateWhenZooming: false, keepBuffer: 4 })).addTo(M.map);
+        M.key = key;
+      } catch (e) { M.key = key; M.layer = null; }
+      M.busy = false;
+    }
+    return !!M.layer;
+  }
+  function mapPlace(w, rd) {      // radar radius rd (css px) = R.range metres
+    if (!M.map || !M.pos) return; const h = M.pos;
+    if (M.sz !== w) { M.sz = w; M.map.invalidateSize(false); }
+    const z = Math.log2(156543.03392 * Math.cos(h[0] * Math.PI / 180) * rd / Math.max(50, R.range)), zc = Math.max(1, Math.min(19, z));
+    const moved = M.ll ? distM(M.ll, h) : 1e9;
+    if (!M.ll || moved > R.range * 0.01 || Math.abs(zc - M.z) > 0.03) { M.z = zc; M.ll = h; M.map.setView(h, zc, { animate: false }); }
+  }
+  function frame() {
+    R.raf = 0; const cv = R.cv; if (!cv || S.tab !== "station" || document.hidden) return;
+    const w = size(), g = R.g, C = colours(), t = performance.now(), cx = w / 2, cy = w / 2, rad = w / 2 - 22;
+    const sig = reduce ? 0 : (((t - R.t0) % PERIOD) / PERIOD) * TAU, prev = R.prev; R.prev = sig;
+    if (mapWanted() && M.layer) R.range = R.rangeT; else R.range += (R.rangeT - R.range) * 0.05;
+    mapSync().then(() => {}); const mapOn = mapWanted() && !!M.layer;
+    const list = contacts(); R.rows = list;
+    g.clearRect(0, 0, w, w); if (mapOn) mapPlace(w, rad); $("radarMapDiv").style.visibility = mapOn ? "visible" : "hidden";
+    { const nt = $("radarMapNote"); if (nt) { const txt = !M.on ? "" : !M.pos ? "Map under radar needs a GPS fix." : !(S.offUse || S.tileSpec) ? "Map under radar: open the map first." : !M.layer ? "Loading map\u2026" : list.some((c) => c.pos) ? "Map scale follows the farthest heard contact with a known position, plus 10 miles. Hollow marks are placed by signal strength only, not by true location." : "No heard contact has a known position yet, so the map shows a 5 km view."; if (nt.textContent !== txt) { nt.textContent = txt; nt.hidden = !txt; } } }
+    /* face */
+    const bgc = g.createRadialGradient(cx, cy, 0, cx, cy, rad + 20); if (C.light) { bgc.addColorStop(0, "#eaf5ee"); bgc.addColorStop(1, "#cfe0d5"); } else { bgc.addColorStop(0, "#07251c"); bgc.addColorStop(1, "#020c09"); }
+    if (mapOn) g.fillStyle = C.light ? "rgba(255,255,255,.12)" : "rgba(2,12,9,.38)"; else g.fillStyle = bgc; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.fill();
+    g.strokeStyle = C.accent; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rad + 18, 0, TAU); g.stroke();
+    const ringsDraw = () => {
+    for (let i = 1; i <= 4; i++) { g.beginPath(); g.arc(cx, cy, rad * i / 4, 0, TAU); g.stroke(); }
+    for (let a = 0; a < 360; a += 30) { const r = a * Math.PI / 180; g.beginPath(); g.moveTo(cx + Math.sin(r) * rad * 0.06, cy - Math.cos(r) * rad * 0.06); g.lineTo(cx + Math.sin(r) * rad, cy - Math.cos(r) * rad); g.stroke(); } };
+    if (mapOn) { g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 4; ringsDraw(); g.strokeStyle = "#ffd23f"; g.lineWidth = 1.6; ringsDraw(); }
+    else { g.strokeStyle = C.light ? "rgba(10,90,60,.35)" : "rgba(61,255,168,.28)"; g.lineWidth = 1; ringsDraw(); }
+    for (let a = 0; a < 360; a += 5) { const r = a * Math.PI / 180, l = a % 10 ? 4 : 8; g.beginPath(); g.moveTo(cx + Math.sin(r) * (rad + 18), cy - Math.cos(r) * (rad + 18)); g.lineTo(cx + Math.sin(r) * (rad + 18 - l), cy - Math.cos(r) * (rad + 18 - l)); g.stroke(); }
+    g.font = "bold 13px ui-monospace, Consolas, monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = C.accent;
+    [["N", 0], ["E", 90], ["S", 180], ["W", 270]].forEach((d) => { const r = d[1] * Math.PI / 180; g.fillText(d[0], cx + Math.sin(r) * (rad + 6), cy - Math.cos(r) * (rad + 6)); });
+    g.font = "11px ui-monospace, Consolas, monospace"; g.fillStyle = mapOn ? "#ffd23f" : C.muted; g.textAlign = "left";
+    for (let i = 1; i <= 4; i++) { const m = R.range * i / 4, tx = fmtDist(m); if (mapOn) { g.lineWidth = 3; g.strokeStyle = "rgba(0,0,0,.75)"; g.strokeText(tx, cx + 4, cy - rad * i / 4 - 7); } g.fillText(tx, cx + 4, cy - rad * i / 4 - 7); }
+    /* sweep */
+    if (!reduce) {
+      for (let k = 0; k < 44; k++) { const a1 = sig - k * 0.028 - Math.PI / 2, a0 = a1 - 0.03, al = 0.34 * Math.pow(1 - k / 44, 2); g.fillStyle = mapOn ? "rgba(255,210,63," + al * 0.9 + ")" : C.light ? "rgba(10,140,80," + al * 0.8 + ")" : "rgba(61,255,168," + al + ")"; g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, rad, a0, a1 + 0.002); g.closePath(); g.fill(); }
+      g.strokeStyle = mapOn ? "#ffd23f" : C.good; g.lineWidth = 2; g.shadowColor = mapOn ? "#ffd23f" : C.good; g.shadowBlur = C.light ? 0 : 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.sin(sig) * rad, cy - Math.cos(sig) * rad); g.stroke(); g.shadowBlur = 0;
+    }
+    /* contacts: lit when the beam crosses them, then fade until the next pass */
+    const seen = new Set(), pts = [];
+    list.forEach((c) => {
+      const k = c.n.k; seen.add(k); let a = c.ang % TAU; if (a < 0) a += TAU;
+      const crossed = prev <= sig ? (prev <= a && a < sig) : (a >= prev || a < sig);
+      if (!reduce && crossed) R.lit.set(k, t);
+      let al; if (reduce) al = 0.9; else { const l = R.lit.get(k); if (l === undefined) return; al = Math.max(0, 1 - (t - l) / (PERIOD * 1.02)); al = Math.pow(al, 1.3); }
+      if (al <= 0.03) return;
+      const x = cx + Math.sin(c.ang) * c.frac * rad, y = cy - Math.cos(c.ang) * c.frac * rad, col = C[(TYPE[c.n.type] || ["sens"])[0]] || C.sens, since = reduce ? 9999 : t - R.lit.get(k);
+      pts.push({ c, x, y });
+      if (since < 700) { g.strokeStyle = col; g.globalAlpha = (1 - since / 700) * 0.8; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 6 + since / 18, 0, TAU); g.stroke(); }
+      g.globalAlpha = al; if (mapOn) shape(g, c.n.type, x, y, 9.5, true, "rgba(0,0,0,.7)"); g.shadowColor = col; g.shadowBlur = C.light ? 0 : 12 * al; shape(g, c.n.type, x, y, 6.5, c.pos, col); g.shadowBlur = 0;
+      if (al > 0.4 || R.hi === k) { g.globalAlpha = Math.max(al, R.hi === k ? 1 : 0); g.font = "12px ui-monospace, Consolas, monospace"; g.textAlign = x > cx ? "left" : "right"; g.textBaseline = "middle"; const lb = lbl(c.n).slice(0, 18); if (mapOn) { g.lineWidth = 3.5; g.strokeStyle = C.light ? "rgba(255,255,255,.95)" : "rgba(0,0,0,.85)"; g.strokeText(lb, x + (x > cx ? 11 : -11), y); } g.fillStyle = C.ink; g.fillText(lb, x + (x > cx ? 11 : -11), y); }
+      g.globalAlpha = 1;
+    });
+    R.pts = pts; for (const k of R.lit.keys()) if (!seen.has(k)) R.lit.delete(k);      // no longer heard: gone from the radar
+    /* centre and corner readouts */
+    g.globalAlpha = 1; g.fillStyle = C.accent; g.beginPath(); g.arc(cx, cy, 4, 0, TAU); g.fill(); g.strokeStyle = C.accent; g.lineWidth = 1.5; g.beginPath(); g.arc(cx, cy, 9, 0, TAU); g.stroke();
+    if (!list.length) { g.fillStyle = C.muted; g.font = "bold 15px ui-monospace, Consolas, monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(S.mode === "off" ? "NO RADIO CONNECTED" : "NO CONTACTS HEARD", cx, cy + rad * 0.4); }
+    g.font = "12px ui-monospace, Consolas, monospace"; g.textAlign = "left"; g.textBaseline = "top"; g.fillStyle = C.muted;
+    const cnt = (ty) => list.filter((c) => (ty === 3 ? c.n.type >= 3 : c.n.type === ty)).length;
+    g.fillText("REP " + cnt(2) + "  CMP " + cnt(1) + "  RM " + cnt(3), 6, 4);
+    g.textAlign = "right"; g.fillText("RNG " + fmtDist(R.range), w - 6, 4);
+    g.textAlign = "left"; g.textBaseline = "bottom"; g.fillText(reduce ? "STATIC" : "SWEEP " + (PERIOD / 1000).toFixed(1) + "s", 6, w - 4);
+    if (t - R.listAt > 1000) { R.listAt = t; fillList(list); }
+    R.raf = requestAnimationFrame(frame);
+  }
+  function fillList(list) {
+    const h = here(), t = now(), a = list.slice().sort((x, y) => y.n.snr - x.n.snr);
+    $("radarList").innerHTML = a.length ? a.map((c) => { const n = c.n, tt = TYPE[n.type] || ["sens", "node"], sym = n.type === 2 ? "&#9679;" : n.type === 1 ? "&#9650;" : "&#9670;";
+      return '<div class="rr' + (R.hi === n.k ? " hi" : "") + '" data-k="' + esc(n.k) + '"><span class="sy ' + tt[0] + '">' + sym + '</span><span class="nm">' + esc(lbl(n, "(no name)")) + '</span><span class="small">' + esc(tt[1]) + '</span><span class="mt">SNR ' + (+n.snr).toFixed(1) + " dB &middot; RSSI " + esc(n.rssi) + " &middot; " + (n.hops === 0 ? "direct" : N(n.hops) + " hops") + " &middot; " + fmtAge(t - n.ms) + " ago" + (c.pos && h ? " &middot; " + esc(fmtDist(c.dist) + " " + compass(c.ang * 180 / Math.PI)) : "") + "</span></div>"; }).join("") : '<p class="muted" style="margin:10px">Nothing heard in this time.</p>';
+    $("radarList").querySelectorAll(".rr").forEach((el) => { el.addEventListener("mouseenter", () => { R.hi = el.dataset.k; }); el.addEventListener("mouseleave", () => { R.hi = ""; }); });
+    const np = list.filter((c) => !c.pos).length;
+    $("radarNote").textContent = (reduce ? "Motion is reduced on this device, so contacts are shown steady. " : "Each contact lights when the sweep passes it and fades until the next pass. A contact that is no longer heard leaves the radar. ") + (np ? np + " contact" + (np === 1 ? " has" : "s have") + " no known position, so " + (np === 1 ? "it is" : "they are") + " placed by signal strength (stronger is nearer the centre) at an arbitrary direction." : (h ? "" : "No GPS fix, so distances are not shown."));
+  }
+  function start() { if (!R.raf && R.cv && S.tab === "station" && !document.hidden) R.raf = requestAnimationFrame(frame); }
+  function hud() {
+    const d = new Date(), p = (v) => String(v).padStart(2, "0"), c = S.cairn, h = here();
+    $("hudZ").textContent = p(d.getUTCHours()) + ":" + p(d.getUTCMinutes()) + ":" + p(d.getUTCSeconds()) + "Z"; $("hudL").textContent = p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+    const dis = c && c.mode === "disaster"; $("hudM").textContent = S.mode === "off" ? "OFFLINE" : dis ? "DISASTER" : "STANDARD"; $("hudMw").dataset.m = dis ? "disaster" : "normal";
+    const t = now(), cnt = (ty) => Array.from(S.nodes.values()).filter((n) => (ty === 3 ? n.type >= 3 : n.type === ty) && n.ms && t - n.ms <= 900000).length;
+    $("hudC").textContent = cnt(2) + "/" + cnt(1) + "/" + cnt(3); $("hudG").textContent = h ? "FIX" : S.frame && S.frame.gps ? "NO FIX" : "N/A";
+  }
+  function init() {
+    R.cv = $("radarCv"); const sel = $("radarWin"); sel.value = String(R.win);
+    const mo = $("radarMapOn"); if (mo) { mo.checked = M.on; mo.addEventListener("change", () => { M.on = mo.checked; try { store.set("cairn-radarmap", M.on ? "1" : "0"); } catch (e) { /* ok */ } }); }
+    sel.addEventListener("change", () => { R.win = +sel.value; try { store.set("cairn-radarwin", String(R.win)); } catch (e) { /* ok */ } R.lit.clear(); });
+    R.cv.addEventListener("pointermove", (ev) => { const r = R.cv.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top, tip = $("radarTip"); let best = null, bd = 18; (R.pts || []).forEach((p) => { const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } }); if (best) { const n = best.c.n; R.hi = n.k; tip.hidden = false; tip.textContent = lbl(n) + " – " + (TYPE[n.type] || ["", "node"])[1] + " – SNR " + (+n.snr).toFixed(1) + " dB – " + (n.hops === 0 ? "direct" : n.hops + " hops") + " – " + fmtAge(now() - n.ms) + " ago"; tip.style.left = Math.min(x + 14, r.width - 230) + "px"; tip.style.top = Math.max(0, y - 34) + "px"; } else { R.hi = ""; tip.hidden = true; } });
+    R.cv.addEventListener("pointerleave", () => { R.hi = ""; $("radarTip").hidden = true; });
+    document.addEventListener("visibilitychange", start);
+    document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => setTimeout(start, 0)));
+    hud(); setInterval(hud, 1000); start();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+/*RADAR-JS-END*/
+</script>
+<script>/* LODESTAR-CREDIT */ try { console.info("Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS), with MeshCore community guidance and assistance."); window.LODESTAR_CREDIT = "Engineered by Aries Thorne & Todd Steinhauer for Wolf Reactive Systems (WRS)"; } catch (e) {}</script>
+<!--UPDATES-TAB-BEGIN-->
+<style id="updates-css">
+.upd-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, .6); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px 16px; overflow: auto; }
+.upd-overlay[hidden] { display: none; }
+.upd-box { width: 100%; max-width: 580px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px 18px; box-shadow: 0 12px 40px rgba(0, 0, 0, .45); }
+.upd-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.upd-head h2 { margin: 0; font: 600 20px var(--font-d, inherit); }
+.upd-choices { display: grid; gap: 10px; margin-top: 12px; }
+.upd-choice { display: block; width: 100%; text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg, transparent); color: var(--ink); cursor: pointer; font: inherit; }
+.upd-choice b { display: block; font-size: 17px; margin-bottom: 3px; }
+.upd-choice span { color: var(--muted); font-size: 14px; }
+.upd-choice:hover, .upd-choice:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+#updMsg { margin: 6px 0 4px; line-height: 1.45; }
+#updMsg .big { font: 600 18px var(--font-d, inherit); display: block; margin-bottom: 4px; }
+#updMsg .ok { color: #1b9e5a; }
+#updMsg .bad { color: #d64545; }
+#updMsg ul { margin: 6px 0 0 18px; padding: 0; }
+#updProg { width: 100%; height: 14px; margin: 10px 0 4px; }
+#updLog { max-height: 150px; overflow: auto; margin: 8px 0 0; padding: 8px; font: 12px/1.35 ui-monospace, Consolas, monospace; background: var(--bg, rgba(0,0,0,.2)); border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; }
+.upd-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.upd-actions a.btnlink, .upd-actions button { min-height: 40px; }
+</style>
+<div id="updOverlay" class="upd-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="updTitle">
+  <div class="upd-box">
+    <div class="upd-head"><h2 id="updTitle">Updates</h2><button id="updClose" type="button">Close</button></div>
+    <div id="updHome">
+      <p class="hint">Choose what to check. Nothing changes unless you say yes.</p>
+      <div class="upd-choices">
+        <button id="updFw" type="button" class="upd-choice"><b>1. Firmware Updates</b><span>Check the firmware on your radio. Needs the radio connected.</span></button>
+        <button id="updDash" type="button" class="upd-choice"><b>2. Dashboard Updates</b><span>Check this dashboard page.</span></button>
+      </div>
+    </div>
+    <div id="updWork" hidden>
+      <div id="updMsg" role="status" aria-live="polite"></div>
+      <progress id="updProg" max="100" value="0" hidden></progress>
+      <pre id="updLog" hidden></pre>
+      <div class="upd-actions" id="updActions"></div>
+    </div>
+  </div>
+</div>
+<script id="updates-js">
+(function () {
+  "use strict";
+  const DASH_ID = "cairn", DASH_VERSION = "1.4.1";
+  const FW_REPO = "propertymonitor-web/firmware_updates", DASH_REPO = "propertymonitor-web/dashboard_updates";
+  const RAW = (repo, path) => "https://raw.githubusercontent.com/" + repo + "/main/" + path;
+  const ESPTOOL = "https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js";
+  const WEB_FLASHER = "https://flasher.meshcore.io";
+  const el = (id) => document.getElementById(id);
+  let busy = false, opener = null;
+
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  function ver(s) { const m = /(\d+)\.(\d+)\.(\d+)/.exec(String(s || "")); return m ? [+m[1], +m[2], +m[3]] : null; }
+  function cmp(a, b) { for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; }
+  async function getJson(url) {
+    const r = await fetch(url + (url.indexOf("?") < 0 ? "?t=" : "&t=") + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("the update server answered " + r.status);
+    return r.json();
+  }
+  async function getBytes(url) {
+    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("the download failed (" + r.status + ")");
+    return new Uint8Array(await r.arrayBuffer());
+  }
+  async function sha256(bytes) {
+    if (!(window.crypto && crypto.subtle)) return null;
+    const d = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+    return Array.from(d, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  async function checkFile(bytes, entry) {
+    if (entry.size && bytes.length !== entry.size) throw new Error("the downloaded file is the wrong size, so nothing was changed");
+    // Fail closed: a missing hash, or a browser that cannot compute one, means nothing is installed or flashed.
+    if (!entry || typeof entry.sha256 !== "string" || !/^[0-9a-f]{64}$/i.test(entry.sha256)) throw new Error("the update list has no checksum for this file, so nothing was changed");
+    const h = await sha256(bytes);
+    if (!h) throw new Error("this browser cannot check the download, so nothing was changed");
+    if (h !== entry.sha256.toLowerCase()) throw new Error("the downloaded file failed its check, so nothing was changed");
+  }
+
+  function show(which) { el("updHome").hidden = which !== "home"; el("updWork").hidden = which !== "work"; }
+  function setMsg(html) { el("updMsg").innerHTML = html; }
+  function setActions(list) {
+    const box = el("updActions"); box.innerHTML = "";
+    list.forEach((a) => {
+      let n;
+      if (a.href) { n = document.createElement("a"); n.href = a.href; n.target = "_blank"; n.rel = "noopener"; n.className = "btnlink"; }
+      else { n = document.createElement("button"); n.type = "button"; if (a.primary) n.className = "primary"; n.addEventListener("click", a.run); }
+      n.textContent = a.label; box.appendChild(n);
+    });
+    const first = box.querySelector("button, a"); if (first && !busy) first.focus();
+  }
+  function progress(v) { const p = el("updProg"); if (v == null) p.hidden = true; else { p.hidden = false; p.value = v; } }
+  function log(line) { const l = el("updLog"); l.hidden = false; l.textContent += line + "\n"; l.scrollTop = l.scrollHeight; }
+  function reset() { setMsg(""); setActions([]); progress(null); el("updLog").hidden = true; el("updLog").textContent = ""; }
+
+  function open() {
+    if (busy) return;
+    opener = document.activeElement; reset(); show("home"); el("updOverlay").hidden = false; el("updFw").focus();
+  }
+  function close() {
+    if (busy) return;
+    el("updOverlay").hidden = true; if (opener && opener.focus) opener.focus();
+  }
+  const closeBtn = { label: "No, back to the dashboard", run: close };
+
+  function notes(entry) { return entry && entry.notes && entry.notes.length ? "<ul>" + entry.notes.map((n) => "<li>" + esc(n) + "</li>").join("") + "</ul>" : ""; }
+
+  /* ---------------------------------------------------------------- dashboard */
+  async function dashboardCheck() {
+    show("work"); reset(); setMsg("Checking for a newer dashboard...");
+    let m;
+    try { m = await getJson(RAW(DASH_REPO, "latest.json")); }
+    catch (e) { setMsg('<span class="big bad">Could not check</span>' + esc(e.message) + ". Check your internet connection and try again."); setActions([{ label: "Back", run: () => show("home") }, closeBtn]); return; }
+    const entry = m.dashboards && m.dashboards[DASH_ID];
+    const mine = ver(DASH_VERSION), latest = entry && ver(entry.version);
+    if (!entry || !latest || !mine) { setMsg('<span class="big">No update information</span>The update list has nothing for this dashboard (' + esc(DASH_ID) + ").") ; setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (cmp(mine, latest) >= 0) {
+      setMsg('<span class="big ok">Your dashboard is up to date</span>Version ' + esc(DASH_VERSION) + "."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close, primary: true }]); return;
+    }
+    setMsg('<span class="big">A newer dashboard is available</span>You have ' + esc(DASH_VERSION) + ", the newest is " + esc(entry.version) + "." + notes(entry) +
+           "<p>Update now? You will pick where to save the new page. To replace the one you are using, choose it in the list and confirm. Reloading afterwards restarts the radio (its Bluetooth PIN stays the same).</p>");
+    setActions([{ label: "Yes, update now", primary: true, run: () => dashboardUpdate(entry) }, closeBtn]);
+  }
+  async function dashboardUpdate(entry) {
+    busy = true; setActions([]);
+    try {
+      let handle = null;
+      if (window.showSaveFilePicker) {                        // must be asked for straight away, while the click still counts
+        try { handle = await window.showSaveFilePicker({ suggestedName: entry.file || (DASH_ID + ".html"), types: [{ description: "Dashboard page", accept: { "text/html": [".html"] } }] }); }
+        catch (e) { if (e && e.name === "AbortError") { busy = false; setMsg("Nothing was changed."); setActions([closeBtn]); return; } handle = null; }
+      }
+      setMsg("Downloading the new dashboard..."); progress(30);
+      const bytes = await getBytes(RAW(DASH_REPO, entry.path)); await checkFile(bytes, entry);
+      progress(100);
+      if (handle) {
+        const w = await handle.createWritable(); await w.write(bytes); await w.close();
+        busy = false; progress(null);
+        setMsg('<span class="big ok">Saved</span>Version ' + esc(entry.version) + " is saved as " + esc(handle.name) + ". Reload to start using it (if you replaced the page you are using).");
+        setActions([{ label: "Reload now", primary: true, run: () => location.reload() }, { label: "Later", run: close }]);
+      } else {
+        const url = URL.createObjectURL(new Blob([bytes], { type: "text/html" })); const a = document.createElement("a");
+        a.href = url; a.download = entry.file || (DASH_ID + ".html"); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000);
+        busy = false; progress(null);
+        setMsg('<span class="big ok">Downloaded</span>The new dashboard (version ' + esc(entry.version) + ") is in your Downloads folder as " + esc(entry.file || (DASH_ID + ".html")) + ". Open that file to use it.");
+        setActions([{ label: "Close", primary: true, run: close }]);
+      }
+    } catch (e) {
+      busy = false; progress(null); setMsg('<span class="big bad">The dashboard was not updated</span>' + esc(e.message || e)); setActions([{ label: "Close", run: close }]);
+    }
+  }
+
+  /* ---------------------------------------------------------------- firmware */
+  async function firmwareCheck() {
+    show("work"); reset();
+    const f = (typeof S !== "undefined") ? S.frame : null;
+    if (typeof S !== "undefined" && S.mode === "demo") { setMsg('<span class="big">Sample data is showing</span>Click Close, then Connect radio to use your own radio, and try again.'); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (!f || !f.v) { setMsg('<span class="big">Connect your radio first</span>The radio tells this page which firmware it has. Close this, click Connect radio, wait until data appears, then choose Firmware Updates again.'); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    setMsg("Checking for newer firmware...");
+    let m;
+    try { m = await getJson(RAW(FW_REPO, "latest.json")); }
+    catch (e) { setMsg('<span class="big bad">Could not check</span>' + esc(e.message) + ". Check your internet connection and try again."); setActions([{ label: "Back", run: () => show("home") }, closeBtn]); return; }
+    const product = (DASH_ID === "otr" || DASH_ID === "cairn") ? DASH_ID : (f.ed === "orion" ? "orion" : "nova");
+    const entry = m.products && m.products[product];
+    const unit = f.unit === "mph" ? "mph" : "metric";
+    const mine = ver(f.v), latest = entry && ver(entry.version);
+    if (!entry || !latest) { setMsg('<span class="big">No update file yet</span>Your radio reports ' + esc(f.v) + ". There is no firmware listed for this product yet (" + esc(product) + ")."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (!mine) { setMsg('<span class="big">Version not recognised</span>Your radio reports "' + esc(f.v) + '", which this page cannot compare.'); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    if (cmp(mine, latest) >= 0) {
+      setMsg('<span class="big ok">Your firmware is up to date</span>Your radio runs ' + esc(f.v) + "."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close, primary: true }]); return;
+    }
+    const v = entry.variants && entry.variants[unit], file = v && v.update;
+    if (!file) { setMsg('<span class="big">No update file for your radio</span>A newer firmware (' + esc(entry.version) + ") exists, but not for the " + esc(unit) + " version."); setActions([{ label: "Back", run: () => show("home") }, { label: "Close", run: close }]); return; }
+    setMsg('<span class="big">A newer firmware is available</span>Your radio runs ' + esc(f.v) + ", the newest is " + esc(entry.version) + "." + notes(entry) +
+           "<p>Update now? It takes about a minute. Keep the USB cable plugged in and leave this page open. Your settings are kept.</p>");
+    setActions([{ label: "Yes, update now", primary: true, run: () => firmwareUpdate(entry, file) }, closeBtn]);
+  }
+  function toBinaryString(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return s; }
+  async function firmwareUpdate(entry, file) {
+    busy = true; setActions([]); progress(0); el("updLog").textContent = "";
+    let port = null, transport = null;
+    const stop = (msg) => { busy = false; progress(null); setMsg(msg); setActions([{ label: "Open the web flasher", href: WEB_FLASHER }, { label: "Close", run: close }]); };
+    try {
+      setMsg("Downloading the new firmware..."); progress(2);
+      const bytes = await getBytes(RAW(FW_REPO, file.path)); await checkFile(bytes, file);
+      log("firmware downloaded and checked (" + bytes.length + " bytes)");
+      setMsg("Letting go of the radio...");
+      if (typeof S !== "undefined" && S.mode === "serial") { S.manual = true; await disconnect(false); }
+      port = (typeof S !== "undefined" && S.kept) || null;
+      if (typeof S !== "undefined") S.kept = null;
+      if (port) { try { await port.close(); } catch (e) { /* already closed */ } }
+      else { setMsg("Choose your radio in the list that appears."); port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x303a }] }); }
+      setMsg("Loading the flashing tool...");
+      const mod = await import(ESPTOOL);
+      transport = new mod.Transport(port, false);
+      const loader = new mod.ESPLoader({ transport, baudrate: 460800, romBaudrate: 115200, terminal: { clean() {}, writeLine: log, write: log } });
+      setMsg("Connecting to the radio's bootloader..."); progress(5);
+      const chip = await loader.main(); log("chip: " + chip);
+      if (!/ESP32-S3/i.test(String(chip))) throw new Error("This is not an ESP32-S3 radio (" + chip + "), so nothing was written");
+      setMsg("Writing the new firmware. Do not unplug the radio...");
+      const parts = [{ data: toBinaryString(bytes), address: file.offset }];
+      // blank areas to clear after the app is written (the "which copy to start" record, so the radio starts the copy just written)
+      (file.extra || []).forEach((x) => parts.push({ data: String.fromCharCode(x.fill & 255).repeat(x.length), address: x.offset }));
+      await loader.writeFlash({ fileArray: parts, flashSize: "keep", flashMode: "keep", flashFreq: "keep", eraseAll: false, compress: true,
+        reportProgress: (i, written, total) => progress(5 + (total ? written / total : 0) * 93) });
+      progress(99); setMsg("Restarting the radio...");
+      await loader.after("hard_reset");
+      try { await transport.disconnect(); } catch (e) { /* already gone */ }
+      busy = false; progress(100);
+      setMsg('<span class="big ok">Firmware updated to ' + esc(entry.version) + "</span>The radio is restarting. Wait about 10 seconds, then click Connect radio. If it does not come back, unplug it and plug it in again.");
+      setActions([{ label: "Close", primary: true, run: close }]);
+    } catch (e) {
+      try { if (transport) await transport.disconnect(); } catch (e2) { /* ignore */ }
+      if (e && e.name === "NotFoundError") { stop('<span class="big">Nothing was changed</span>No radio was chosen.'); return; }
+      stop('<span class="big bad">The firmware was not updated</span>' + esc((e && e.message) || e) + "<p>Unplug the radio and plug it in again, then try once more. If it keeps failing, hold the PRG button while plugging it in, then use the web flasher.</p>");
+    }
+  }
+
+  /* ---------------------------------------------------------------- wiring */
+  el("btnUpdates").addEventListener("click", open);
+  el("updClose").addEventListener("click", close);
+  el("updFw").addEventListener("click", firmwareCheck);
+  el("updDash").addEventListener("click", dashboardCheck);
+  el("updOverlay").addEventListener("click", (ev) => { if (ev.target === el("updOverlay")) close(); });
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !el("updOverlay").hidden) close(); });
+  window.DASH_UPDATE = { id: DASH_ID, version: DASH_VERSION };
+})();
+</script>
+<!--UPDATES-TAB-END-->
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Signing material - never commit
+*.keystore
+*.jks
+android/keystore.properties
